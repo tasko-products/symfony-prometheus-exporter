@@ -1,0 +1,30 @@
+{
+    "name": "tasko-products/symfony-prometheus-exporter",
+    "description": "Generic metrics exporter for Symfony including messenger event metrics via middleware, request metrics, logging metrics and custom metrics via the Collector composition",
+    "type": "symfony-bundle",
+    "require": {
+        "php": ">=7.2.5",
+        "symfony/framework-bundle": "^5.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "TaskoProducts\\SymfonyPrometheusExporterBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "TaskoProducts\\SymfonyPrometheusExporterBundle\\Tests\\": "tests/"
+        }
+    },
+    "license": "tbd",
+    "authors": [
+        {
+            "name": "Lukas Rotermund",
+            "email": "lukas.rotermund@tasko.de"
+        },
+        {
+            "name": "Tobias Lorenz",
+            "email": "tobias.lorenz@tasko.de"
+        }
+    ]
+}
