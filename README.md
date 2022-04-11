@@ -90,7 +90,7 @@ Run the tests:
 ```bash
 # when Redis is not listening on localhost:
 # export REDIS_HOST=...
-./vendor/bin/phpunit
+$ ./vendor/bin/phpunit
 ```
 
 ### PHPUnit via docker-compose
@@ -103,4 +103,19 @@ $ docker-compose up -d
 Then run phpunit with docker-compose::
 ```bash
 $ docker-compose run phpunit vendor/bin/phpunit
+```
+
+Static code analysis
+--------------------
+
+### PHPStan
+
+Install dependencies:
+```bash
+$ composer install
+```
+
+And just run the analysis:
+```bash
+$ vendor/bin/phpstan analyse src tests
 ```
