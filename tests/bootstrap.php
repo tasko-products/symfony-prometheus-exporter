@@ -1,6 +1,4 @@
 <?php
-
-declare(strict_types=1);
 /**
  * @link            https://tasko.de/ tasko Products GmbH
  * @copyright       (c) tasko Products GmbH 2020
@@ -8,6 +6,8 @@ declare(strict_types=1);
  * @author          Lukas Rotermund <lukas.rotermund@tasko.de>
  * @version         1.0.0
  */
+
+declare(strict_types=1);
 
 error_reporting(-1);
 date_default_timezone_set('UTC');
