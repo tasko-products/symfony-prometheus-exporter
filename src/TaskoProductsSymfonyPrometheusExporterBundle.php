@@ -13,7 +13,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class SymfonyPrometheusExporterBundle extends Bundle
+class TaskoProductsSymfonyPrometheusExporterBundle extends Bundle
 {
     public function getPath(): string
     {
