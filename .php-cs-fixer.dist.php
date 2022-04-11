@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 /**
  * @link            https://tasko.de/ tasko Products GmbH
  * @copyright       (c) tasko Products GmbH 2020
@@ -6,6 +6,8 @@
  * @author          Lukas Rotermund <lukas.rotermund@tasko.de>
  * @version         1.0.0
  */
+
+ declare(strict_types=1);
 
 $finder = new PhpCsFixer\Finder();
 $finder->in(__DIR__ . '/src/')
