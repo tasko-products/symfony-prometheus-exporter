@@ -136,3 +136,6 @@ fabric.properties
 /build/
 
 # End of https://www.toptal.com/developers/gitignore/api/composer,phpunit,phpstorm
+
+### php-cs-fixer ###
+.php-cs-fixer.cache

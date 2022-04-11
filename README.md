@@ -119,3 +119,18 @@ And just run the analysis:
 ```bash
 $ vendor/bin/phpstan analyse src tests
 ```
+
+Code cleanup
+------------
+
+### php-cs-fixer
+
+Install dependencies:
+```bash
+$ composer install
+```
+
+And just run the cleanup:
+```bash
+$ vendor/bin/php-cs-fixer fix
+```
