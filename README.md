@@ -70,3 +70,37 @@ framework:
                 middleware:
                     - 'TaskoProducts\MessengerEventMiddleware'
 ```
+
+Testing
+-------
+
+### PHPUnit
+
+Start a Redis instance:
+```bash
+$ docker-compose up Redis
+```
+
+Install dependencies:
+```bash
+$ composer install
+```
+
+Run the tests:
+```bash
+# when Redis is not listening on localhost:
+# export REDIS_HOST=...
+./vendor/bin/phpunit
+```
+
+### PHPUnit via docker-compose
+
+Just start the nginx, fpm & Redis setup with docker-compose:
+```bash
+$ docker-compose up -d
+```
+
+Then run phpunit with docker-compose::
+```bash
+$ docker-compose run phpunit vendor/bin/phpunit
+```
