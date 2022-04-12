@@ -14,7 +14,6 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest;
 use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Middleware\AddBusNameStampMiddleware;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\Exception\InvalidBusNameException;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\MessageBusFactory;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
@@ -79,13 +78,13 @@ class MessengerEventMiddlewareTest extends TestCase
 
     public function testInvalidCharactersInBusName(): void
     {
-        $this->expectException(InvalidBusNameException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         $givenInvalidBusName = 'FooBar#Message';
         $givenValidMetricName = 'foobar_metric';
 
         $messageBus = MessageBusFactory::create(
-            [FooMessage::class => [new FooMessageHandler()]],
+            [FooBarMessage::class => [new FooBarMessageHandler()]],
             new AddBusNameStampMiddleware($givenInvalidBusName),
             new MessengerEventMiddleware(
                 $this->registry,
@@ -93,6 +92,6 @@ class MessengerEventMiddlewareTest extends TestCase
             )
         );
 
-        $messageBus->dispatch(new FooMessage('Bar'));
+        $messageBus->dispatch(new FooBarMessage('Bar'));
     }
 }
