@@ -41,8 +41,8 @@ class MessengerEventMiddleware implements MiddlewareInterface
         );
 
         $counter->inc([
-            \get_class($envelope->getMessage()),
-            substr((string)strrchr(get_class($envelope->getMessage()), '\\'), 1)
+            $this->messageClassPathLabel($envelope),
+            $this->messageClassLabel($envelope),
         ]);
 
         $envelope = $stack->next()->handle($envelope, $stack);
@@ -50,8 +50,12 @@ class MessengerEventMiddleware implements MiddlewareInterface
         return $envelope;
     }
 
-    private function getCounter(string $busName, string $name, string $helperText, array $labels = null): Counter
-    {
+    private function getCounter(
+        string $busName,
+        string $name,
+        string $helperText,
+        array $labels = null
+    ): Counter {
         return $this->registry->getOrRegisterCounter(
             $busName,
             $name,
@@ -66,9 +70,19 @@ class MessengerEventMiddleware implements MiddlewareInterface
         $stamp = $envelope->last(BusNameStamp::class);
 
         if ($stamp instanceof BusNameStamp === true) {
-            $busName = str_replace('.', '_', $stamp->getBusName());
+            $busName = \str_replace('.', '_', $stamp->getBusName());
         }
 
         return $busName;
+    }
+
+    private function messageClassPathLabel(Envelope $envelope): string
+    {
+        return \get_class($envelope->getMessage());
+    }
+
+    private function messageClassLabel(Envelope $envelope): string
+    {
+        return \substr((string)\strrchr($this->messageClassPathLabel($envelope), '\\'), 1);
     }
 }
