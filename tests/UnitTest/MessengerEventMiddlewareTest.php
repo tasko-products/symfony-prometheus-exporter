@@ -80,8 +80,8 @@ class MessengerEventMiddlewareTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $givenInvalidBusName = 'FooBar#Message';
-        $givenValidMetricName = 'foobar_metric';
+        $givenInvalidBusName = 'invalid#message#bus';
+        $givenValidMetricName = 'valid_metric_name';
 
         $messageBus = MessageBusFactory::create(
             [FooBarMessage::class => [new FooBarMessageHandler()]],
@@ -92,6 +92,25 @@ class MessengerEventMiddlewareTest extends TestCase
             )
         );
 
-        $messageBus->dispatch(new FooBarMessage('Bar'));
+        $messageBus->dispatch(new FooBarMessage());
+    }
+
+    public function testInvalidCharactersInMetricName(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $givenValidBusName = 'valid_message_bus';
+        $givenInvalidMetricName = 'invalid.metric.name';
+
+        $messageBus = MessageBusFactory::create(
+            [FooBarMessage::class => [new FooBarMessageHandler()]],
+            new AddBusNameStampMiddleware($givenValidBusName),
+            new MessengerEventMiddleware(
+                $this->registry,
+                $givenInvalidMetricName
+            )
+        );
+
+        $messageBus->dispatch(new FooBarMessage());
     }
 }
