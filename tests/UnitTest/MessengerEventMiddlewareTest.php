@@ -20,14 +20,14 @@ use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollec
 
 class MessengerEventMiddlewareTest extends TestCase
 {
-    private RegistryInterface $collectorRegistry;
+    private RegistryInterface $registry;
 
     private const BUS_NAME = 'message_bus';
     private const METRIC_NAME = 'messenger';
 
     protected function setUp(): void
     {
-        $this->collectorRegistry = PrometheusCollectorRegistryFactory::create();
+        $this->registry = PrometheusCollectorRegistryFactory::create();
     }
 
     public function testCollectFooBarMessageSuccessfully(): void
@@ -35,12 +35,12 @@ class MessengerEventMiddlewareTest extends TestCase
         $messageBus = MessageBusFactory::create(
             [FooBarMessage::class => [new FooBarMessageHandler()]],
             new AddBusNameStampMiddleware(self::BUS_NAME),
-            new MessengerEventMiddleware()
+            new MessengerEventMiddleware($this->registry, self::METRIC_NAME)
         );
 
         $messageBus->dispatch(new FooBarMessage());
 
-        $counter = $this->collectorRegistry->getCounter(self::BUS_NAME, self::METRIC_NAME);
+        $counter = $this->registry->getCounter(self::BUS_NAME, self::METRIC_NAME);
 
         $this->assertEquals(self::BUS_NAME . '_' . self::METRIC_NAME, $counter->getName());
     }
