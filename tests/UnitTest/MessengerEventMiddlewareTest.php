@@ -14,6 +14,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest;
 use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Middleware\AddBusNameStampMiddleware;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\Exception\InvalidBusNameException;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\MessageBusFactory;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
@@ -74,5 +75,24 @@ class MessengerEventMiddlewareTest extends TestCase
         $counter = $this->registry->getCounter(self::BUS_NAME, self::ERROR_METRIC_NAME);
 
         $this->assertEquals(self::BUS_NAME . '_' . self::ERROR_METRIC_NAME, $counter->getName());
+    }
+
+    public function testInvalidCharactersInBusName(): void
+    {
+        $this->expectException(InvalidBusNameException::class);
+
+        $givenInvalidBusName = 'FooBar#Message';
+        $givenValidMetricName = 'foobar_metric';
+
+        $messageBus = MessageBusFactory::create(
+            [FooMessage::class => [new FooMessageHandler()]],
+            new AddBusNameStampMiddleware($givenInvalidBusName),
+            new MessengerEventMiddleware(
+                $this->registry,
+                $givenValidMetricName
+            )
+        );
+
+        $messageBus->dispatch(new FooMessage('Bar'));
     }
 }
