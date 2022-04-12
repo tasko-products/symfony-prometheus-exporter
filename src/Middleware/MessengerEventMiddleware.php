@@ -20,11 +20,17 @@ use Symfony\Component\Messenger\Stamp\BusNameStamp;
 
 class MessengerEventMiddleware implements MiddlewareInterface
 {
+    /**
+     * @param string[] $labels
+     * @param string[] $errorLabels
+     */
     public function __construct(
         public RegistryInterface $registry,
         public string $metricName = 'message',
         public string $helpText = 'Executed Messages',
-        public array $labels = ['message', 'label'],
+        public array  $labels = ['message', 'label'],
+        public string $errorHelpText = 'Failed Messages',
+        public array  $errorLabels = ['message', 'label'],
     ) {
     }
 
@@ -33,19 +39,37 @@ class MessengerEventMiddleware implements MiddlewareInterface
      */
     public function handle(Envelope $envelope, StackInterface $stack): Envelope
     {
+        $busName = $this->extractBusName($envelope);
+
         $counter = $this->getCounter(
-            $this->extractBusName($envelope),
+            $busName,
             $this->metricName,
             $this->helpText,
             $this->labels
         );
 
-        $counter->inc([
-            $this->messageClassPathLabel($envelope),
-            $this->messageClassLabel($envelope),
-        ]);
+        try {
+            $counter->inc([
+                $this->messageClassPathLabel($envelope),
+                $this->messageClassLabel($envelope),
+            ]);
 
-        $envelope = $stack->next()->handle($envelope, $stack);
+            $envelope = $stack->next()->handle($envelope, $stack);
+        } catch (\Throwable $exception) {
+            $counter = $this->getCounter(
+                $busName,
+                $this->metricName . '_error',
+                $this->errorHelpText,
+                $this->errorLabels
+            );
+
+            $counter->inc([
+                $this->messageClassPathLabel($envelope),
+                $this->messageClassLabel($envelope),
+            ]);
+
+            throw $exception;
+        }
 
         return $envelope;
     }
