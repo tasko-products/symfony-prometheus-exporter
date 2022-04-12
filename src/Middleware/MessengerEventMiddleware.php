@@ -48,25 +48,24 @@ class MessengerEventMiddleware implements MiddlewareInterface
             $this->labels
         );
 
+        $messageLabels = [
+            $this->messageClassPathLabel($envelope),
+            $this->messageClassLabel($envelope),
+        ];
+
         try {
-            $counter->inc([
-                $this->messageClassPathLabel($envelope),
-                $this->messageClassLabel($envelope),
-            ]);
+            $counter->inc($messageLabels);
 
             $envelope = $stack->next()->handle($envelope, $stack);
         } catch (\Throwable $exception) {
-            $counter = $this->getCounter(
+            $counter = $this->getErrorCounter(
                 $busName,
-                $this->metricName . '_error',
+                $this->metricName,
                 $this->errorHelpText,
                 $this->errorLabels
             );
 
-            $counter->inc([
-                $this->messageClassPathLabel($envelope),
-                $this->messageClassLabel($envelope),
-            ]);
+            $counter->inc($messageLabels);
 
             throw $exception;
         }
@@ -74,15 +73,35 @@ class MessengerEventMiddleware implements MiddlewareInterface
         return $envelope;
     }
 
+    /**
+     * @param string[] $labels
+     */
     private function getCounter(
         string $busName,
         string $name,
         string $helperText,
-        array $labels = null
+        array $labels
     ): Counter {
         return $this->registry->getOrRegisterCounter(
             $busName,
             $name,
+            $helperText,
+            $labels
+        );
+    }
+
+    /**
+     * @param string[] $labels
+     */
+    private function getErrorCounter(
+        string $busName,
+        string $name,
+        string $helperText,
+        array $labels
+    ): Counter {
+        return $this->getCounter(
+            $busName,
+            $name . '_error',
             $helperText,
             $labels
         );
