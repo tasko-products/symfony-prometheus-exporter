@@ -15,6 +15,7 @@ use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
+use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 
 class RetryMessengerEventMiddleware implements MiddlewareInterface
 {
@@ -36,6 +37,10 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
      */
     public function handle(Envelope $envelope, StackInterface $stack): Envelope
     {
+        if ($envelope->last(RedeliveryStamp::class) === null) {
+            return $stack->next()->handle($envelope, $stack);
+        }
+
         $counter = $this->registry->getOrRegisterCounter(
             $this->extractBusName($envelope),
             $this->metricName,
