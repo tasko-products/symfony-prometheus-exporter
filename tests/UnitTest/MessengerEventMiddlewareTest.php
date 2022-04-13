@@ -56,6 +56,23 @@ class MessengerEventMiddlewareTest extends TestCase
         $this->assertEquals([FooBarMessage::class, 'FooBarMessage'], $samples[0]->getLabelValues());
     }
 
+    public function testErrorMetricIsInitialisedWithZeroOnSuccessfulMessage(): void
+    {
+        $givenRouting = [FooBarMessage::class => [new FooBarMessageHandler()]];
+
+        $messageBus = MessageBusFactory::create(
+            $givenRouting,
+            new AddBusNameStampMiddleware(self::BUS_NAME),
+            new MessengerEventMiddleware($this->registry, self::METRIC_NAME)
+        );
+
+        $messageBus->dispatch(new FooBarMessage());
+
+        $counter = $this->registry->getCounter(self::BUS_NAME, self::ERROR_METRIC_NAME);
+
+        $this->assertEquals(self::BUS_NAME . '_' . self::ERROR_METRIC_NAME, $counter->getName());
+    }
+
     public function testCollectMessengerExceptionsSuccessfully(): void
     {
         $givenRouting = [FooBarMessage::class => [new FooBarMessageHandlerWithException()]];
