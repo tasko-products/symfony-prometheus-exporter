@@ -37,16 +37,24 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
      */
     public function handle(Envelope $envelope, StackInterface $stack): Envelope
     {
-        if ($envelope->last(RedeliveryStamp::class) === null) {
-            return $stack->next()->handle($envelope, $stack);
-        }
-
         $counter = $this->registry->getOrRegisterCounter(
             $this->extractBusName($envelope),
             $this->metricName,
             $this->helpText,
             $this->labels
         );
+
+        if ($envelope->last(RedeliveryStamp::class) === null) {
+            $counter->incBy(
+                0,
+                [
+                    $this->messageClassPathLabel($envelope),
+                    $this->messageClassLabel($envelope),
+                ]
+            );
+
+            return $stack->next()->handle($envelope, $stack);
+        }
 
         $counter->inc([
             $this->messageClassPathLabel($envelope),
