@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest;
 
 use PHPUnit\Framework\TestCase;
-use Prometheus\Exception\MetricNotFoundException;
 use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\AddBusNameStampMiddleware;
@@ -60,10 +59,8 @@ class RetryMessengerEventMiddlewareTest extends TestCase
         $this->assertEquals([FooBarMessage::class, 'FooBarMessage'], $samples[0]->getLabelValues());
     }
 
-    public function testCollectFooBarMessageOnlyOnRetry(): void
+    public function testCollectDefaultRetryMetricWhenRedeliveryStampIsNotSet(): void
     {
-        $this->expectException(MetricNotFoundException::class);
-
         $givenRouting = [FooBarMessage::class => [new FooBarMessageHandler()]];
 
         $messageBus = MessageBusFactory::create(
@@ -74,6 +71,16 @@ class RetryMessengerEventMiddlewareTest extends TestCase
 
         $messageBus->dispatch(new FooBarMessage());
 
-        $this->registry->getCounter(self::BUS_NAME, self::METRIC_NAME);
+        $counter = $this->registry->getCounter(self::BUS_NAME, self::METRIC_NAME);
+
+        $this->assertEquals(self::BUS_NAME . '_' . self::METRIC_NAME, $counter->getName());
+        $this->assertEquals(['message', 'label'], $counter->getLabelNames());
+
+        $expectedMetricCounter = 0;
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[0]->getSamples();
+
+        $this->assertEquals($expectedMetricCounter, $samples[0]->getValue());
+        $this->assertEquals([FooBarMessage::class, 'FooBarMessage'], $samples[0]->getLabelValues());
     }
 }
