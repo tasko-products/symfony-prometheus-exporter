@@ -28,7 +28,7 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
         public RegistryInterface $registry,
         public string $metricName = 'retry_message',
         public string $helpText = 'Retried Messages',
-        public array  $labels = ['message', 'label'],
+        public array  $labels = ['message', 'label', 'retry'],
     ) {
     }
 
@@ -44,18 +44,23 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
             $this->labels
         );
 
-        $messageLabels = [
-            $this->messageClassPathLabel($envelope),
-            $this->messageClassLabel($envelope),
-        ];
+        $redeliveryStamp = $envelope->last(RedeliveryStamp::class);
 
-        if ($envelope->last(RedeliveryStamp::class) === null) {
-            $counter->incBy(0, $messageLabels);
+        if ($redeliveryStamp === null || !$redeliveryStamp instanceof RedeliveryStamp) {
+            $counter->incBy(0, [
+                $this->messageClassPathLabel($envelope),
+                $this->messageClassLabel($envelope),
+                0,
+            ]);
 
             return $stack->next()->handle($envelope, $stack);
         }
 
-        $counter->inc($messageLabels);
+        $counter->inc([
+            $this->messageClassPathLabel($envelope),
+            $this->messageClassLabel($envelope),
+            (string) $redeliveryStamp->getRetryCount(),
+        ]);
 
         return $stack->next()->handle($envelope, $stack);
     }

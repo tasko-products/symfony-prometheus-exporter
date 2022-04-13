@@ -52,11 +52,12 @@ class RetryMessengerEventMiddlewareTest extends TestCase
         $this->assertEquals(['message', 'label', 'retry'], $counter->getLabelNames());
 
         $expectedMetricCounter = 1;
+        $expectedLabelValues = [FooBarMessage::class, 'FooBarMessage', '1'];
         $metrics = $this->registry->getMetricFamilySamples();
         $samples = $metrics[0]->getSamples();
 
         $this->assertEquals($expectedMetricCounter, $samples[0]->getValue());
-        $this->assertEquals([FooBarMessage::class, 'FooBarMessage'], $samples[0]->getLabelValues());
+        $this->assertEquals($expectedLabelValues, $samples[0]->getLabelValues());
     }
 
     public function testCollectDefaultRetryMetricWhenRedeliveryStampIsNotSet(): void
@@ -77,10 +78,11 @@ class RetryMessengerEventMiddlewareTest extends TestCase
         $this->assertEquals(['message', 'label', 'retry'], $counter->getLabelNames());
 
         $expectedMetricCounter = 0;
+        $expectedLabelValues = [FooBarMessage::class, 'FooBarMessage', '0'];
         $metrics = $this->registry->getMetricFamilySamples();
         $samples = $metrics[0]->getSamples();
 
         $this->assertEquals($expectedMetricCounter, $samples[0]->getValue());
-        $this->assertEquals([FooBarMessage::class, 'FooBarMessage'], $samples[0]->getLabelValues());
+        $this->assertEquals($expectedLabelValues, $samples[0]->getLabelValues());
     }
 }
