@@ -49,7 +49,7 @@ class RetryMessengerEventMiddlewareTest extends TestCase
         $counter = $this->registry->getCounter(self::BUS_NAME, self::METRIC_NAME);
 
         $this->assertEquals(self::BUS_NAME . '_' . self::METRIC_NAME, $counter->getName());
-        $this->assertEquals(['message', 'label'], $counter->getLabelNames());
+        $this->assertEquals(['message', 'label', 'retry'], $counter->getLabelNames());
 
         $expectedMetricCounter = 1;
         $metrics = $this->registry->getMetricFamilySamples();
@@ -74,7 +74,7 @@ class RetryMessengerEventMiddlewareTest extends TestCase
         $counter = $this->registry->getCounter(self::BUS_NAME, self::METRIC_NAME);
 
         $this->assertEquals(self::BUS_NAME . '_' . self::METRIC_NAME, $counter->getName());
-        $this->assertEquals(['message', 'label'], $counter->getLabelNames());
+        $this->assertEquals(['message', 'label', 'retry'], $counter->getLabelNames());
 
         $expectedMetricCounter = 0;
         $metrics = $this->registry->getMetricFamilySamples();
