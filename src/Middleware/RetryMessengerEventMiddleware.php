@@ -18,6 +18,8 @@ use Symfony\Component\Messenger\Middleware\StackInterface;
 
 class RetryMessengerEventMiddleware implements MiddlewareInterface
 {
+    use EnvelopeMethodesTrait;
+
     /**
      * @param string[] $labels
      * @param string[] $errorLabels
@@ -26,6 +28,7 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
         public RegistryInterface $registry,
         public string $metricName = 'retry_message',
         public string $helpText = 'Retried Messages',
+        public array  $labels = ['message', 'label'],
     ) {
     }
 
@@ -34,6 +37,24 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
      */
     public function handle(Envelope $envelope, StackInterface $stack): Envelope
     {
+        $busName = $this->extractBusName($envelope);
+
+        $counter = $this->registry->getOrRegisterCounter(
+            $busName,
+            $this->metricName,
+            $this->helpText,
+            $this->labels
+        );
+
+        $messageLabels = [
+            $this->messageClassPathLabel($envelope),
+            $this->messageClassLabel($envelope),
+        ];
+
+        $counter->inc($messageLabels);
+
+        $envelope = $stack->next()->handle($envelope, $stack);
+
         return $envelope;
     }
 }
