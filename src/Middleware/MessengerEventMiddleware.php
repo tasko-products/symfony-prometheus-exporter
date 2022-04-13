@@ -16,10 +16,11 @@ use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
-use Symfony\Component\Messenger\Stamp\BusNameStamp;
 
 class MessengerEventMiddleware implements MiddlewareInterface
 {
+    use EnvelopeMethodesTrait;
+
     /**
      * @param string[] $labels
      * @param string[] $errorLabels
@@ -106,27 +107,5 @@ class MessengerEventMiddleware implements MiddlewareInterface
             $helperText,
             $labels
         );
-    }
-
-    private function extractBusName(Envelope $envelope): string
-    {
-        $busName = 'default_messenger';
-        $stamp = $envelope->last(BusNameStamp::class);
-
-        if ($stamp instanceof BusNameStamp === true) {
-            $busName = \str_replace('.', '_', $stamp->getBusName());
-        }
-
-        return $busName;
-    }
-
-    private function messageClassPathLabel(Envelope $envelope): string
-    {
-        return \get_class($envelope->getMessage());
-    }
-
-    private function messageClassLabel(Envelope $envelope): string
-    {
-        return \substr((string)\strrchr($this->messageClassPathLabel($envelope), '\\'), 1);
     }
 }
