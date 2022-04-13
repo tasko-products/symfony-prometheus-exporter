@@ -44,22 +44,18 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
             $this->labels
         );
 
+        $messageLabels = [
+            $this->messageClassPathLabel($envelope),
+            $this->messageClassLabel($envelope),
+        ];
+
         if ($envelope->last(RedeliveryStamp::class) === null) {
-            $counter->incBy(
-                0,
-                [
-                    $this->messageClassPathLabel($envelope),
-                    $this->messageClassLabel($envelope),
-                ]
-            );
+            $counter->incBy(0, $messageLabels);
 
             return $stack->next()->handle($envelope, $stack);
         }
 
-        $counter->inc([
-            $this->messageClassPathLabel($envelope),
-            $this->messageClassLabel($envelope),
-        ]);
+        $counter->inc($messageLabels);
 
         return $stack->next()->handle($envelope, $stack);
     }
