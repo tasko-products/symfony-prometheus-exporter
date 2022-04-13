@@ -17,6 +17,9 @@ use Symfony\Component\Messenger\Middleware\AddBusNameStampMiddleware;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\MessageBusFactory;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Model\FooBarMessage;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Model\FooBarMessageHandler;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Model\FooBarMessageHandlerWithException;
 
 class MessengerEventMiddlewareTest extends TestCase
 {

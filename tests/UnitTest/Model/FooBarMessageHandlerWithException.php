@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest;
+namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Model;
 
 class FooBarMessageHandlerWithException
 {
