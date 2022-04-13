@@ -22,7 +22,6 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
 
     /**
      * @param string[] $labels
-     * @param string[] $errorLabels
      */
     public function __construct(
         public RegistryInterface $registry,
@@ -37,24 +36,18 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
      */
     public function handle(Envelope $envelope, StackInterface $stack): Envelope
     {
-        $busName = $this->extractBusName($envelope);
-
         $counter = $this->registry->getOrRegisterCounter(
-            $busName,
+            $this->extractBusName($envelope),
             $this->metricName,
             $this->helpText,
             $this->labels
         );
 
-        $messageLabels = [
+        $counter->inc([
             $this->messageClassPathLabel($envelope),
             $this->messageClassLabel($envelope),
-        ];
+        ]);
 
-        $counter->inc($messageLabels);
-
-        $envelope = $stack->next()->handle($envelope, $stack);
-
-        return $envelope;
+        return $stack->next()->handle($envelope, $stack);
     }
 }
