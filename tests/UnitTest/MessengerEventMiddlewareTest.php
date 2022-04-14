@@ -55,6 +55,7 @@ class MessengerEventMiddlewareTest extends TestCase
         $metrics = $this->registry->getMetricFamilySamples();
         $samples = $metrics[0]->getSamples();
 
+        $this->assertEquals(self::BUS_NAME . '_' . self::METRIC_NAME, $samples[0]->getName());
         $this->assertEquals($expectedMetricCounter, $samples[0]->getValue());
         $this->assertEquals([FooBarMessage::class, 'FooBarMessage'], $samples[0]->getLabelValues());
     }
@@ -74,6 +75,15 @@ class MessengerEventMiddlewareTest extends TestCase
         $counter = $this->registry->getCounter(self::BUS_NAME, self::ERROR_METRIC_NAME);
 
         $this->assertEquals(self::BUS_NAME . '_' . self::ERROR_METRIC_NAME, $counter->getName());
+        $this->assertEquals(['message', 'label'], $counter->getLabelNames());
+
+        $expectedMetricCounter = 0;
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $this->assertEquals(self::BUS_NAME . '_' . self::ERROR_METRIC_NAME, $samples[0]->getName());
+        $this->assertEquals($expectedMetricCounter, $samples[0]->getValue());
+        $this->assertEquals([FooBarMessage::class, 'FooBarMessage'], $samples[0]->getLabelValues());
     }
 
     public function testCollectMessengerExceptionsSuccessfully(): void
@@ -94,6 +104,15 @@ class MessengerEventMiddlewareTest extends TestCase
         $counter = $this->registry->getCounter(self::BUS_NAME, self::ERROR_METRIC_NAME);
 
         $this->assertEquals(self::BUS_NAME . '_' . self::ERROR_METRIC_NAME, $counter->getName());
+        $this->assertEquals(['message', 'label'], $counter->getLabelNames());
+
+        $expectedMetricCounter = 1;
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $this->assertEquals(self::BUS_NAME . '_' . self::ERROR_METRIC_NAME, $samples[0]->getName());
+        $this->assertEquals($expectedMetricCounter, $samples[0]->getValue());
+        $this->assertEquals([FooBarMessage::class, 'FooBarMessage'], $samples[0]->getLabelValues());
     }
 
     public function testInvalidCharactersInBusName(): void
