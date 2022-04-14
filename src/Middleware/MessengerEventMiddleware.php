@@ -26,12 +26,12 @@ class MessengerEventMiddleware implements MiddlewareInterface
      * @param string[] $errorLabels
      */
     public function __construct(
-        public RegistryInterface $registry,
-        public string $metricName = 'message',
-        public string $helpText = 'Executed Messages',
-        public array  $labels = ['message', 'label'],
-        public string $errorHelpText = 'Failed Messages',
-        public array  $errorLabels = ['message', 'label'],
+        private RegistryInterface $registry,
+        private string $metricName = 'message',
+        private string $helpText = 'Executed Messages',
+        private array  $labels = ['message', 'label'],
+        private string $errorHelpText = 'Failed Messages',
+        private array  $errorLabels = ['message', 'label'],
     ) {
     }
 

@@ -25,10 +25,10 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
      * @param string[] $labels
      */
     public function __construct(
-        public RegistryInterface $registry,
-        public string $metricName = 'retry_message',
-        public string $helpText = 'Retried Messages',
-        public array  $labels = ['message', 'label', 'retry'],
+        private RegistryInterface $registry,
+        private string $metricName = 'retry_message',
+        private string $helpText = 'Retried Messages',
+        private array  $labels = ['message', 'label', 'retry'],
     ) {
     }
 
