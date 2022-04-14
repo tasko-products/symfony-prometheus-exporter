@@ -1,6 +1,8 @@
 Symfony Prometheus Exporter
 ===========================
 
+![Code Checks](https://github.com/tasko-products/symfony-prometheus-exporter/actions/workflows/checks.yml/badge.svg) ![Tests](https://github.com/tasko-products/symfony-prometheus-exporter/actions/workflows/tests.yml/badge.svg)
+
 > Note this bundle is in **active development (it is not ready for the moment)**.
 
 The Symfony Prometheus Exporter is a bundle that includes a bunch of generic Prometheus
