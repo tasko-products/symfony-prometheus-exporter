@@ -19,10 +19,14 @@ class MessengerMetricsEventSubscriber implements EventSubscriberInterface
     /**
      * @inheritDoc
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             WorkerStartedEvent::class => 'onWorkerStarted'
         ];
+    }
+
+    public function onWorkerStarted(): void
+    {
     }
 }
