@@ -20,5 +20,3 @@ if (!file_exists($autoload)) {
     exit(1);
 }
 require $autoload;
-
-define('REDIS_HOST', isset($_ENV['REDIS_HOST']) ? $_ENV['REDIS_HOST'] : '127.0.0.1');

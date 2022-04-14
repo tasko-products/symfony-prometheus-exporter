@@ -28,6 +28,3 @@ services:
       - .:/var/www/html
     links:
       - nginx
-      - redis
-    environment:
-      - REDIS_HOST=redis
