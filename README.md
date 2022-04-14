@@ -129,11 +129,6 @@ Testing
 
 ### PHPUnit
 
-Start a Redis instance:
-```bash
-$ docker-compose up Redis
-```
-
 Install dependencies:
 ```bash
 $ composer install
@@ -141,8 +136,6 @@ $ composer install
 
 Run the tests:
 ```bash
-# when Redis is not listening on localhost:
-# export REDIS_HOST=...
 $ ./vendor/bin/phpunit
 ```
 
