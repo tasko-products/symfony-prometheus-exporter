@@ -11,11 +11,23 @@ declare(strict_types=1);
 
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 
+use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 
 class MessengerMetricsEventSubscriber implements EventSubscriberInterface
 {
+    /**
+     * @param string[] $labels
+     */
+    public function __construct(
+        private RegistryInterface $registry,
+        private string $activeWorkersMetricName = 'active_workers',
+        private string $helpText = 'Active Workers',
+        private array  $labels = ['queue_names', 'transport_names'],
+    ) {
+    }
+
     /**
      * @inheritDoc
      */
@@ -26,7 +38,20 @@ class MessengerMetricsEventSubscriber implements EventSubscriberInterface
         ];
     }
 
-    public function onWorkerStarted(): void
+    public function onWorkerStarted(WorkerStartedEvent $event): void
     {
+        $gauge = $this->registry->getOrRegisterGauge(
+            'message_bus',
+            $this->activeWorkersMetricName,
+            $this->helpText,
+            $this->labels
+        );
+
+        $data = $event->getWorker()->getMetadata();
+
+        $gauge->inc([
+            \implode(', ', $data->getQueueNames() ?: []),
+            \implode(', ', $data->getTransportNames() ?: []),
+        ]);
     }
 }
