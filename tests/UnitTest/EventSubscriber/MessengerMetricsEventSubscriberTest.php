@@ -19,7 +19,7 @@ class MessengerMetricsEventSubscriberTest extends TestCase
 {
     public function testWorkerStartedEventIsSubscribedByMessengerMetricsEventSubscriber(): void
     {
-        $this->assertContains(
+        $this->assertArrayHasKey(
             WorkerStartedEvent::class,
             MessengerMetricsEventSubscriber::getSubscribedEvents()
         );
