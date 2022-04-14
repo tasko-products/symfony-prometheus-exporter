@@ -2,23 +2,9 @@ ARG PHP_VERSION=8.1
 
 FROM php:${PHP_VERSION}-fpm-alpine AS php
 
-ARG APCU_VERSION=5.1.21
-ARG REDIS_VERSION=5.3.7
 RUN set -eux; \
 	apk add --no-cache --virtual .build-deps \
 		$PHPIZE_DEPS \
-	; \
-	\
-	pecl install \
-		apcu-${APCU_VERSION} \
-	; \
-	pecl install \
-		redis-${REDIS_VERSION} \
-	; \
-	pecl clear-cache; \
-	docker-php-ext-enable \
-		apcu \
-		redis \
 	; \
 	\
 	runDeps="$( \
@@ -32,4 +18,3 @@ RUN set -eux; \
 	apk del .build-deps
 
 COPY www.conf /usr/local/etc/php-fpm.d/
-COPY docker-php-ext-apcu-cli.ini /usr/local/etc/php/conf.d/
