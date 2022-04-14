@@ -46,19 +46,48 @@ in the `config/bundles.php` file of your project:
 
 return [
     // ...
-    TaskoProducts\SymfonyPrometheusExporterBundle::class => ['all' => true],
+    TaskoProducts\SymfonyPrometheusExporterBundle\TaskoProductsSymfonyPrometheusExporterBundle::class => ['all' => true],
 ];
 ```
 
 Configuration
 -------------
 
-### Enable the essenger event collector (optional)
+### Enable the message bus metrics collector (optional)
 
-> tbd
+To enable the message bus metrics collector, add the `Prometheus` configuration to your services.
 
-To enable the messenger event collector, add the `MessengerEventMiddleware`
-to your messenger config.
+```yml
+# app/config/services.yml
+
+services:
+    # For redis use this:
+    # Prometheus\Storage\Redis:
+    #     arguments:
+    #         - host: '%env(PROMETHEUS_REDIS_HOST)%'
+    #           port: '%env(PROMETHEUS_REDIS_PORT)%'
+    #           password: '%env(PROMETHEUS_REDIS_PASSWORD)%'
+    #           timeout: '%env(PROMETHEUS_REDIS_TIMEOUT)%'
+    #           read_timeout: '%env(PROMETHEUS_REDIS_READ_TIMEOUT)%'
+    #           persistent_connections: '%env(PROMETHEUS_REDIS_PERSISTENT_CONNECTIONS)%'
+    # Prometheus\CollectorRegistry: ['@Prometheus\Storage\Redis']
+
+    Prometheus\Storage\InMemory: ~
+    Prometheus\CollectorRegistry: ['@Prometheus\Storage\InMemory']
+    Prometheus\RegistryInterface: '@Prometheus\CollectorRegistry'
+```
+
+Next, register the Symfony Messenger middlewares as necessary.
+
+```yml
+# app/config/services.yml
+
+services: 
+    TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware: ~
+    TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware: ~
+```
+
+Now register the desired middlewares for your message bus(es).
 
 ```yml
 # app/config/messenger.yml
@@ -68,7 +97,29 @@ framework:
         buses:
             message.bus.commands:
                 middleware:
-                    - 'TaskoProducts\MessengerEventMiddleware'
+                    - 'TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware'
+                    - 'TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware'
+```
+
+Example for the `MessengerEventMiddleware`:
+```bash
+# HELP message_bus_commands_message Executed Messages
+# TYPE message_bus_commands_message counter
+message_bus_commands_message{message="App\\Message\\FailingFooBarMessage",label="FailingFooBarMessage"} 1337
+message_bus_commands_message{message="App\\Message\\FooBarMessage",label="FooBarMessage"} 2096
+# HELP message_bus_commands_message_error Failed Messages
+# TYPE message_bus_commands_message_error counter
+message_bus_commands_message_error{message="App\\Message\\FailingFooBarMessage",label="FailingFooBarMessage"} 1337
+message_bus_commands_message_error{message="App\\Message\\FooBarMessage",label="FooBarMessage"} 0
+```
+
+Example for the `RetryMessengerEventMiddleware`:
+```bash
+# HELP message_bus_commands_retry_message Retried Messages
+# TYPE message_bus_commands_retry_message counter
+message_bus_commands_retry_message{message="App\\Message\\FailingFooBarMessage",label="FailingFooBarMessage",retry="0"} 0
+message_bus_commands_retry_message{message="App\\Message\\FooBarMessage",label="FooBarMessage",retry="0"} 0
+message_bus_commands_retry_message{message="App\\Message\\FooBarMessage",label="FooBarMessage",retry="2"} 666
 ```
 
 Testing
