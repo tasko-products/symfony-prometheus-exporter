@@ -1,0 +1,7 @@
+version: "3.4"
+
+services:
+  phpunit:
+    build: php-fpm/
+    volumes:
+      - .:/var/www/html
