@@ -13,18 +13,22 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\EventSubs
 
 use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
-use Symfony\Component\Messenger\MessageBus;
+use Symfony\Component\Messenger\EventListener\StopWorkerOnMessageLimitListener;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Worker;
 use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessengerMetricsEventSubscriber;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessage;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarReceiver;
 
 class MessengerMetricsEventSubscriberTest extends TestCase
 {
     private RegistryInterface $registry;
 
-    private const BUS_NAME = 'message_bus';
-    private const METRIC_NAME = 'event';
+    private const NAMESPACE = 'messenger_events';
 
     protected function setUp(): void
     {
@@ -41,20 +45,27 @@ class MessengerMetricsEventSubscriberTest extends TestCase
 
     public function testCollectWorkerStartedMetricSuccessfully(): void
     {
-        $subscriber = new MessengerMetricsEventSubscriber($this->registry, self::METRIC_NAME);
-
-        $subscriber->onWorkerStarted(
-            new WorkerStartedEvent(
-                new Worker(
-                    [],
-                    new MessageBus()
-                )
-            )
+        $transports = [
+            'transport' => new FooBarReceiver([[new Envelope(new FooBarMessage())]]),
+            'prio_transport' => new FooBarReceiver([[new Envelope(new FooBarMessage())]]),
+        ];
+        $bus = $this->createMock(MessageBusInterface::class);
+        $dispatcher = new EventDispatcher();
+        $dispatcher->addSubscriber(
+            new MessengerMetricsEventSubscriber($this->registry)
         );
+        $dispatcher->addSubscriber(new StopWorkerOnMessageLimitListener(1));
 
-        $gauge = $this->registry->getGauge(self::BUS_NAME, self::METRIC_NAME);
+        (new Worker(
+            $transports,
+            $bus,
+            $dispatcher
+        ))->run(['queues' => ['foobar_worker_queue', 'priority_foobar_worker_queue']]);
 
-        $this->assertEquals(self::BUS_NAME . '_' . self::METRIC_NAME, $gauge->getName());
+        $activeWorkerMetric = 'active_workers';
+        $gauge = $this->registry->getGauge(self::NAMESPACE, $activeWorkerMetric);
+
+        $this->assertEquals(self::NAMESPACE . '_' . $activeWorkerMetric, $gauge->getName());
         $this->assertEquals(['queue_names', 'transport_names'], $gauge->getLabelNames());
 
         $expectedMetricGauge = 1;
@@ -62,5 +73,12 @@ class MessengerMetricsEventSubscriberTest extends TestCase
         $samples = $metrics[1]->getSamples();
 
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+        $this->assertEquals(
+            [
+                'foobar_worker_queue, priority_foobar_worker_queue',
+                'transport, prio_transport',
+            ],
+            $samples[0]->getLabelValues(),
+        );
     }
 }

@@ -19,8 +19,8 @@ use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\MessageBusFactory;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Model\FooBarMessage;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Model\FooBarMessageHandler;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessage;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessageHandler;
 
 class RetryMessengerEventMiddlewareTest extends TestCase
 {

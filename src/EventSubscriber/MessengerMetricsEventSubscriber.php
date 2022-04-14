@@ -22,6 +22,7 @@ class MessengerMetricsEventSubscriber implements EventSubscriberInterface
      */
     public function __construct(
         private RegistryInterface $registry,
+        private string $messengerNamespace = 'messenger_events',
         private string $activeWorkersMetricName = 'active_workers',
         private string $helpText = 'Active Workers',
         private array  $labels = ['queue_names', 'transport_names'],
@@ -41,7 +42,7 @@ class MessengerMetricsEventSubscriber implements EventSubscriberInterface
     public function onWorkerStarted(WorkerStartedEvent $event): void
     {
         $gauge = $this->registry->getOrRegisterGauge(
-            'message_bus',
+            $this->messengerNamespace,
             $this->activeWorkersMetricName,
             $this->helpText,
             $this->labels
