@@ -25,7 +25,7 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
         private string $messengerNamespace = 'messenger_events',
         private string $messagesInProcessMetricName = 'messages_in_process',
         private string $helpText = 'Messages In Process',
-        private array  $labels = ['message_path', 'message_class', 'receiver'],
+        private array  $labels = ['message_path', 'message_class', 'receiver', 'bus'],
     ) {
     }
 
@@ -48,6 +48,6 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
             $this->labels,
         );
 
-        $gauge->inc(['', '', '']);
+        $gauge->inc(['', '', '', '']);
     }
 }

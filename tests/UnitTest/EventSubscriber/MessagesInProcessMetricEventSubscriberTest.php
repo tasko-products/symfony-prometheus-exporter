@@ -50,6 +50,6 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         $gauge = $this->registry->getGauge(self::NAMESPACE, $messagesInProcessMetric);
 
         $this->assertEquals(self::NAMESPACE . '_' . $messagesInProcessMetric, $gauge->getName());
-        $this->assertEquals(['message_path', 'message_class', 'receiver'], $gauge->getLabelNames());
+        $this->assertEquals(['message_path', 'message_class', 'receiver', 'bus'], $gauge->getLabelNames());
     }
 }
