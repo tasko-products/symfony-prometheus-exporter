@@ -137,4 +137,25 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
 
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
     }
+
+    public function testCollectWorkerMessageReceivedAndFailedMetricSuccessfully(): void
+    {
+        $envelope = new Envelope(new FooBarMessage());
+        $receiver = 'foobar_receiver';
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent($envelope, $receiver),
+        );
+
+        $this->subscriber->onWorkerMessageFailed(
+            new WorkerMessageFailedEvent($envelope, $receiver, new Exception('boom!'))
+        );
+
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $expectedMetricGauge = 0;
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
 }
