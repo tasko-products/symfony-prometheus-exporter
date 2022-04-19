@@ -81,4 +81,29 @@ class MessengerMetricsEventSubscriberTest extends TestCase
             $samples[0]->getLabelValues(),
         );
     }
+
+    public function testCollectWorkerStoppedMetricSuccessfully(): void
+    {
+        $transports = [
+            'transport' => new FooBarReceiver([[new Envelope(new FooBarMessage())]]),
+        ];
+        $bus = $this->createMock(MessageBusInterface::class);
+        $dispatcher = new EventDispatcher();
+        $dispatcher->addSubscriber(
+            new MessengerMetricsEventSubscriber($this->registry)
+        );
+        $dispatcher->addSubscriber(new StopWorkerOnMessageLimitListener(1));
+
+        (new Worker(
+            $transports,
+            $bus,
+            $dispatcher
+        ))->run(['queues' => ['foobar_worker_queue', 'priority_foobar_worker_queue']]);
+
+        $expectedMetricGauge = 0;
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
 }
