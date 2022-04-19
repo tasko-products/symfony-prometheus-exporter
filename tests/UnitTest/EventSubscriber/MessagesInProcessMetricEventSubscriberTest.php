@@ -89,30 +89,14 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
 
     public function testCollectWorkerMessageHandledMetricSuccessfully(): void
     {
-        $this->subscriber->onWorkerMessageReceived(
-            new WorkerMessageReceivedEvent(
-                new Envelope(
-                    new FooBarMessage(),
-                    [new BusNameStamp('foobar_bus')],
-                ),
-                'foobar_receiver'
-            )
-        );
-
         $this->subscriber->onWorkerMessageHandled(
-            new WorkerMessageHandledEvent(
-                new Envelope(
-                    new FooBarMessage(),
-                    [new BusNameStamp('foobar_bus')],
-                ),
-                'foobar_receiver'
-            )
+            new WorkerMessageHandledEvent(new Envelope(new FooBarMessage()), 'foobar_receiver')
         );
 
         $metrics = $this->registry->getMetricFamilySamples();
         $samples = $metrics[1]->getSamples();
 
-        $expectedMetricGauge = 0;
+        $expectedMetricGauge = -1;
 
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
     }

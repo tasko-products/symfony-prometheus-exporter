@@ -11,8 +11,10 @@ declare(strict_types=1);
 
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 
+use Prometheus\Gauge;
 use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Messenger\Event\AbstractWorkerMessageEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
@@ -46,39 +48,36 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
 
     public function onWorkerMessageReceived(WorkerMessageReceivedEvent $event): void
     {
-        $gauge = $this->registry->getOrRegisterGauge(
-            $this->messengerNamespace,
-            $this->messagesInProcessMetricName,
-            $this->helpText,
-            $this->labels,
-        );
-
-        $envelope = $event->getEnvelope();
-
-        $gauge->inc([
-            $this->messageClassPathLabel($envelope),
-            $this->messageClassLabel($envelope),
-            $event->getReceiverName(),
-            $this->extractBusName($envelope),
-        ]);
+        $this->messagesInProcessGauge()->inc($this->messagesInProcessLabels($event));
     }
 
     public function onWorkerMessageHandled(WorkerMessageHandledEvent $event): void
     {
-        $gauge = $this->registry->getOrRegisterGauge(
+        $this->messagesInProcessGauge()->dec($this->messagesInProcessLabels($event));
+    }
+
+    private function messagesInProcessGauge(): Gauge
+    {
+        return $this->registry->getOrRegisterGauge(
             $this->messengerNamespace,
             $this->messagesInProcessMetricName,
             $this->helpText,
             $this->labels,
         );
+    }
 
+    /**
+     * @return string[]
+     */
+    private function messagesInProcessLabels(AbstractWorkerMessageEvent $event): array
+    {
         $envelope = $event->getEnvelope();
 
-        $gauge->dec([
+        return [
             $this->messageClassPathLabel($envelope),
             $this->messageClassLabel($envelope),
             $event->getReceiverName(),
             $this->extractBusName($envelope),
-        ]);
+        ];
     }
 }
