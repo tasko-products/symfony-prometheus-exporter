@@ -65,5 +65,20 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
 
     public function onWorkerMessageHandled(WorkerMessageHandledEvent $event): void
     {
+        $gauge = $this->registry->getOrRegisterGauge(
+            $this->messengerNamespace,
+            $this->messagesInProcessMetricName,
+            $this->helpText,
+            $this->labels,
+        );
+
+        $envelope = $event->getEnvelope();
+
+        $gauge->dec([
+            $this->messageClassPathLabel($envelope),
+            $this->messageClassLabel($envelope),
+            $event->getReceiverName(),
+            $this->extractBusName($envelope),
+        ]);
     }
 }
