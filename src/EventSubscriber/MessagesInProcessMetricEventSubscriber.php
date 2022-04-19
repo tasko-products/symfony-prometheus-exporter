@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 
 class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
 {
@@ -20,6 +21,8 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
      */
     public static function getSubscribedEvents(): array
     {
-        return [];
+        return [
+            WorkerMessageReceivedEvent::class => 'onWorkerMessageReceived',
+        ];
     }
 }
