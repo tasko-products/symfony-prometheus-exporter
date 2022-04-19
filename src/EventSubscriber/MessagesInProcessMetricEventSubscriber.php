@@ -19,6 +19,9 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private RegistryInterface $registry,
+        private string $messengerNamespace = 'messenger_events',
+        private string $messagesInProcessMetricName = 'messages_in_process',
+        private string $helpText = 'Messages In Process',
     ) {
     }
 
@@ -34,5 +37,12 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
 
     public function onWorkerMessageReceived(WorkerMessageReceivedEvent $event): void
     {
+        $gauge = $this->registry->getOrRegisterGauge(
+            $this->messengerNamespace,
+            $this->messagesInProcessMetricName,
+            $this->helpText,
+        );
+
+        $gauge->inc();
     }
 }
