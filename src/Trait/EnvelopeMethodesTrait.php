@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace TaskoProducts\SymfonyPrometheusExporterBundle\Middleware;
+namespace TaskoProducts\SymfonyPrometheusExporterBundle\Trait;
 
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;

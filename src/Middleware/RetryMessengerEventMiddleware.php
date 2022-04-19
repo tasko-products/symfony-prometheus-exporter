@@ -16,6 +16,7 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
 class RetryMessengerEventMiddleware implements MiddlewareInterface
 {

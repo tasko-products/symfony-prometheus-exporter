@@ -16,6 +16,7 @@ use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
 class MessengerEventMiddleware implements MiddlewareInterface
 {
