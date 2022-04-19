@@ -86,4 +86,34 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
             MessagesInProcessMetricEventSubscriber::getSubscribedEvents()
         );
     }
+
+    public function testCollectWorkerMessageHandledMetricSuccessfully(): void
+    {
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent(
+                new Envelope(
+                    new FooBarMessage(),
+                    [new BusNameStamp('foobar_bus')],
+                ),
+                'foobar_receiver'
+            )
+        );
+
+        $this->subscriber->onWorkerMessageHandled(
+            new WorkerMessageHandledEvent(
+                new Envelope(
+                    new FooBarMessage(),
+                    [new BusNameStamp('foobar_bus')],
+                ),
+                'foobar_receiver'
+            )
+        );
+
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $expectedMetricGauge = 0;
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
 }

@@ -62,4 +62,8 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
             $this->extractBusName($envelope),
         ]);
     }
+
+    public function onWorkerMessageHandled(WorkerMessageHandledEvent $event): void
+    {
+    }
 }
