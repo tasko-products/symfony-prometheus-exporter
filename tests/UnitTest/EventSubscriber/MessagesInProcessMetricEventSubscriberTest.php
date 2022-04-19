@@ -14,6 +14,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\EventSubs
 use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
 use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInProcessMetricEventSubscriber;
@@ -75,6 +76,14 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
                 'foobar_bus',
             ],
             $samples[0]->getLabelValues(),
+        );
+    }
+
+    public function testWorkerMessageHandledEventIsSubscribedByMessagesInProcessMetricEventSubscriber(): void
+    {
+        $this->assertArrayHasKey(
+            WorkerMessageHandledEvent::class,
+            MessagesInProcessMetricEventSubscriber::getSubscribedEvents()
         );
     }
 }
