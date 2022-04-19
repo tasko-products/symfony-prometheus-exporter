@@ -14,6 +14,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
+use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
 
 class MessengerMetricsEventSubscriber implements EventSubscriberInterface
 {
@@ -35,7 +36,8 @@ class MessengerMetricsEventSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            WorkerStartedEvent::class => 'onWorkerStarted'
+            WorkerStartedEvent::class => 'onWorkerStarted',
+            WorkerStoppedEvent::class => 'onWorkerStopped'
         ];
     }
 
@@ -51,6 +53,23 @@ class MessengerMetricsEventSubscriber implements EventSubscriberInterface
         $data = $event->getWorker()->getMetadata();
 
         $gauge->inc([
+            \implode(', ', $data->getQueueNames() ?: []),
+            \implode(', ', $data->getTransportNames() ?: []),
+        ]);
+    }
+
+    public function onWorkerStopped(WorkerStoppedEvent $event): void
+    {
+        $gauge = $this->registry->getOrRegisterGauge(
+            $this->messengerNamespace,
+            $this->activeWorkersMetricName,
+            $this->helpText,
+            $this->labels
+        );
+
+        $data = $event->getWorker()->getMetadata();
+
+        $gauge->dec([
             \implode(', ', $data->getQueueNames() ?: []),
             \implode(', ', $data->getTransportNames() ?: []),
         ]);

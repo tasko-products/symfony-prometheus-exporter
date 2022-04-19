@@ -14,15 +14,12 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\EventSubs
 use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
-use Symfony\Component\Messenger\EventListener\StopWorkerOnMessageLimitListener;
-use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
 use Symfony\Component\Messenger\Worker;
+use Symfony\Component\Messenger\WorkerMetadata;
 use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessengerMetricsEventSubscriber;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessage;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarReceiver;
 
 class MessengerMetricsEventSubscriberTest extends TestCase
 {
@@ -45,22 +42,30 @@ class MessengerMetricsEventSubscriberTest extends TestCase
 
     public function testCollectWorkerStartedMetricSuccessfully(): void
     {
-        $transports = [
-            'transport' => new FooBarReceiver([[new Envelope(new FooBarMessage())]]),
-            'prio_transport' => new FooBarReceiver([[new Envelope(new FooBarMessage())]]),
-        ];
-        $bus = $this->createMock(MessageBusInterface::class);
         $dispatcher = new EventDispatcher();
         $dispatcher->addSubscriber(
             new MessengerMetricsEventSubscriber($this->registry)
         );
-        $dispatcher->addSubscriber(new StopWorkerOnMessageLimitListener(1));
 
-        (new Worker(
-            $transports,
-            $bus,
-            $dispatcher
-        ))->run(['queues' => ['foobar_worker_queue', 'priority_foobar_worker_queue']]);
+        /**
+         * @var Worker $workerMock
+        */
+        $workerMock = $this->getMockBuilder(Worker::class)
+                           ->disableOriginalConstructor()
+                           ->getMock();
+
+        $workerMock->expects($this->once())
+                   ->method('getMetadata')
+                   ->willReturn(new WorkerMetadata([
+                        'transportNames' => ['transport', 'prio_transport'],
+                        'queueNames' => [
+                           'foobar_worker_queue',
+                           'priority_foobar_worker_queue'
+                        ]
+                    ]));
+
+        (new MessengerMetricsEventSubscriber($this->registry))
+            ->onWorkerStarted(new WorkerStartedEvent($workerMock));
 
         $activeWorkerMetric = 'active_workers';
         $gauge = $this->registry->getGauge(self::NAMESPACE, $activeWorkerMetric);
@@ -84,21 +89,31 @@ class MessengerMetricsEventSubscriberTest extends TestCase
 
     public function testCollectWorkerStoppedMetricSuccessfully(): void
     {
-        $transports = [
-            'transport' => new FooBarReceiver([[new Envelope(new FooBarMessage())]]),
-        ];
-        $bus = $this->createMock(MessageBusInterface::class);
         $dispatcher = new EventDispatcher();
         $dispatcher->addSubscriber(
             new MessengerMetricsEventSubscriber($this->registry)
         );
-        $dispatcher->addSubscriber(new StopWorkerOnMessageLimitListener(1));
 
-        (new Worker(
-            $transports,
-            $bus,
-            $dispatcher
-        ))->run(['queues' => ['foobar_worker_queue', 'priority_foobar_worker_queue']]);
+        /**
+         * @var Worker $workerMock
+         */
+        $workerMock = $this->getMockBuilder(Worker::class)
+                           ->disableOriginalConstructor()
+                           ->getMock();
+
+        $workerMock->expects($this->atLeast(2))
+                   ->method('getMetadata')
+                   ->willReturn(new WorkerMetadata([
+                        'transportNames' => ['transport', 'prio_transport'],
+                        'queueNames' => [
+                           'foobar_worker_queue',
+                           'priority_foobar_worker_queue'
+                        ]
+                    ]));
+
+        $subscriber = new MessengerMetricsEventSubscriber($this->registry);
+        $subscriber->onWorkerStarted(new WorkerStartedEvent($workerMock));
+        $subscriber->onWorkerStopped(new WorkerStoppedEvent($workerMock));
 
         $expectedMetricGauge = 0;
         $metrics = $this->registry->getMetricFamilySamples();
