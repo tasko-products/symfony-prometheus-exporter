@@ -14,6 +14,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\EventSubs
 use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
@@ -99,5 +100,34 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         $expectedMetricGauge = -1;
 
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
+
+    public function testCollectWorkerMessageReceivedAndHandledMetricSuccessfully(): void
+    {
+        $envelope = new Envelope(new FooBarMessage());
+        $receiver = 'foobar_receiver';
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent($envelope, $receiver),
+        );
+
+        $this->subscriber->onWorkerMessageHandled(
+            new WorkerMessageHandledEvent($envelope, $receiver),
+        );
+
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $expectedMetricGauge = 0;
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
+
+    public function testWorkerMessageFailedEventIsSubscribedByMessagesInProcessMetricEventSubscriber(): void
+    {
+        $this->assertArrayHasKey(
+            WorkerMessageFailedEvent::class,
+            MessagesInProcessMetricEventSubscriber::getSubscribedEvents()
+        );
     }
 }
