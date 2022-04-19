@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\EventSubscriber;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
@@ -115,6 +116,24 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         $samples = $metrics[1]->getSamples();
 
         $expectedMetricGauge = 0;
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
+
+    public function testCollectWorkerMessageFailedMetricSuccessfully(): void
+    {
+        $this->subscriber->onWorkerMessageFailed(
+            new WorkerMessageFailedEvent(
+                new Envelope(new FooBarMessage()),
+                'foobar_receiver',
+                new Exception('boom!')
+            )
+        );
+
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $expectedMetricGauge = -1;
 
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
     }

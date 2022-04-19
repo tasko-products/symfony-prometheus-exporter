@@ -58,6 +58,10 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
         $this->messagesInProcessGauge()->dec($this->messagesInProcessLabels($event));
     }
 
+    public function onWorkerMessageFailed(WorkerMessageFailedEvent $event): void
+    {
+    }
+
     private function messagesInProcessGauge(): Gauge
     {
         return $this->registry->getOrRegisterGauge(
