@@ -14,6 +14,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
+use Symfony\Component\Messenger\Stamp\BusNameStamp;
 
 class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
 {
@@ -48,6 +49,19 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
             $this->labels,
         );
 
-        $gauge->inc(['', '', '', '']);
+        $envelope = $event->getEnvelope();
+        $busName = 'default_messenger';
+        $stamp = $envelope->last(BusNameStamp::class);
+
+        if ($stamp instanceof BusNameStamp === true) {
+            $busName = \str_replace('.', '_', $stamp->getBusName());
+        }
+
+        $gauge->inc([
+            \get_class($envelope->getMessage()),
+            \substr((string)\strrchr(\get_class($envelope->getMessage()), '\\'), 1),
+            $event->getReceiverName(),
+            $busName,
+        ]);
     }
 }
