@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
+use Symfony\Component\Messenger\Stamp\BusNameStamp;
 use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInProcessMetricEventSubscriber;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessage;
@@ -43,13 +44,37 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
     public function testCollectWorkerMessageReceivedMetricSuccessfully(): void
     {
         $this->subscriber->onWorkerMessageReceived(
-            new WorkerMessageReceivedEvent(new Envelope(new FooBarMessage()), 'foobar_receiver')
+            new WorkerMessageReceivedEvent(
+                new Envelope(
+                    new FooBarMessage(),
+                    [new BusNameStamp('foobar_bus')],
+                ),
+                'foobar_receiver'
+            )
         );
 
         $messagesInProcessMetric = 'messages_in_process';
         $gauge = $this->registry->getGauge(self::NAMESPACE, $messagesInProcessMetric);
 
         $this->assertEquals(self::NAMESPACE . '_' . $messagesInProcessMetric, $gauge->getName());
-        $this->assertEquals(['message_path', 'message_class', 'receiver', 'bus'], $gauge->getLabelNames());
+        $this->assertEquals(
+            ['message_path', 'message_class', 'receiver', 'bus'],
+            $gauge->getLabelNames(),
+        );
+
+        $expectedMetricGauge = 1;
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+        $this->assertEquals(
+            [
+                FooBarMessage::class,
+                'FooBarMessage',
+                'foobar_receiver',
+                'foobar_bus',
+            ],
+            $samples[0]->getLabelValues(),
+        );
     }
 }
