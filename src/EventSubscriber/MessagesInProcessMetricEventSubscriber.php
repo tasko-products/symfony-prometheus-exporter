@@ -13,6 +13,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 
 use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
@@ -39,6 +40,7 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
     {
         return [
             WorkerMessageReceivedEvent::class => 'onWorkerMessageReceived',
+            WorkerMessageHandledEvent::class => 'onWorkerMessageHandled',
         ];
     }
 
