@@ -17,11 +17,15 @@ use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 
 class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
 {
+    /**
+     * @param string[] $labels
+     */
     public function __construct(
         private RegistryInterface $registry,
         private string $messengerNamespace = 'messenger_events',
         private string $messagesInProcessMetricName = 'messages_in_process',
         private string $helpText = 'Messages In Process',
+        private array  $labels = ['message_path', 'message_class', 'receiver'],
     ) {
     }
 
@@ -41,8 +45,9 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
             $this->messengerNamespace,
             $this->messagesInProcessMetricName,
             $this->helpText,
+            $this->labels,
         );
 
-        $gauge->inc();
+        $gauge->inc(['', '', '']);
     }
 }
