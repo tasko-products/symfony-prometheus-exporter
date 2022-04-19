@@ -15,6 +15,7 @@ use Prometheus\Gauge;
 use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\AbstractWorkerMessageEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
@@ -43,6 +44,7 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
         return [
             WorkerMessageReceivedEvent::class => 'onWorkerMessageReceived',
             WorkerMessageHandledEvent::class => 'onWorkerMessageHandled',
+            WorkerMessageFailedEvent::class => 'onWorkerMessageFailed',
         ];
     }
 
