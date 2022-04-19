@@ -11,12 +11,14 @@ declare(strict_types=1);
 
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 
+use Prometheus\Gauge;
 use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
+use Symfony\Component\Messenger\WorkerMetadata;
 
-class MessengerMetricsEventSubscriber implements EventSubscriberInterface
+class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
 {
     /**
      * @param string[] $labels
@@ -43,35 +45,40 @@ class MessengerMetricsEventSubscriber implements EventSubscriberInterface
 
     public function onWorkerStarted(WorkerStartedEvent $event): void
     {
-        $gauge = $this->registry->getOrRegisterGauge(
-            $this->messengerNamespace,
-            $this->activeWorkersMetricName,
-            $this->helpText,
-            $this->labels
-        );
-
         $data = $event->getWorker()->getMetadata();
 
-        $gauge->inc([
-            \implode(', ', $data->getQueueNames() ?: []),
-            \implode(', ', $data->getTransportNames() ?: []),
-        ]);
+        $this->activeWorkersGauge()->inc(
+            $this->activeWorkersLabels($data),
+        );
     }
 
     public function onWorkerStopped(WorkerStoppedEvent $event): void
     {
-        $gauge = $this->registry->getOrRegisterGauge(
+        $data = $event->getWorker()->getMetadata();
+
+        $this->activeWorkersGauge()->dec(
+            $this->activeWorkersLabels($data),
+        );
+    }
+
+    private function activeWorkersGauge(): Gauge
+    {
+        return $this->registry->getOrRegisterGauge(
             $this->messengerNamespace,
             $this->activeWorkersMetricName,
             $this->helpText,
             $this->labels
         );
+    }
 
-        $data = $event->getWorker()->getMetadata();
-
-        $gauge->dec([
+    /**
+     * @return string[]
+     */
+    private function activeWorkersLabels(WorkerMetadata $data): array
+    {
+        return [
             \implode(', ', $data->getQueueNames() ?: []),
             \implode(', ', $data->getTransportNames() ?: []),
-        ]);
+        ];
     }
 }
