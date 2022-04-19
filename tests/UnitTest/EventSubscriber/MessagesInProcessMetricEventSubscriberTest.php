@@ -35,11 +35,15 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         $this->subscriber = new MessagesInProcessMetricEventSubscriber($this->registry);
     }
 
-    public function testWorkerMessageReceivedEventIsSubscribedByMessagesInProcessMetricEventSubscriber(): void
+    public function testRequiredMessagesInProcessEventsSubscribed(): void
     {
-        $this->assertArrayHasKey(
-            WorkerMessageReceivedEvent::class,
-            MessagesInProcessMetricEventSubscriber::getSubscribedEvents()
+        $this->assertEquals(
+            [
+                WorkerMessageReceivedEvent::class,
+                WorkerMessageHandledEvent::class,
+                WorkerMessageFailedEvent::class,
+            ],
+            array_keys(MessagesInProcessMetricEventSubscriber::getSubscribedEvents()),
         );
     }
 
@@ -80,14 +84,6 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         );
     }
 
-    public function testWorkerMessageHandledEventIsSubscribedByMessagesInProcessMetricEventSubscriber(): void
-    {
-        $this->assertArrayHasKey(
-            WorkerMessageHandledEvent::class,
-            MessagesInProcessMetricEventSubscriber::getSubscribedEvents()
-        );
-    }
-
     public function testCollectWorkerMessageHandledMetricSuccessfully(): void
     {
         $this->subscriber->onWorkerMessageHandled(
@@ -121,13 +117,5 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         $expectedMetricGauge = 0;
 
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
-    }
-
-    public function testWorkerMessageFailedEventIsSubscribedByMessagesInProcessMetricEventSubscriber(): void
-    {
-        $this->assertArrayHasKey(
-            WorkerMessageFailedEvent::class,
-            MessagesInProcessMetricEventSubscriber::getSubscribedEvents()
-        );
     }
 }
