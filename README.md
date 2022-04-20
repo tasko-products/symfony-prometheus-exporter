@@ -26,16 +26,17 @@ The counters will be incremented when a message is dispatched, as well as when i
 
 | Middleware | Description | Metric |
 | -----------| ----------- | ------ |
-| MessengerEventMiddleware | This middleware increases a counter for every step a message makes. | Counter |
-| RetryMessengerEventMiddleware | This middleware increases a counter for every step a retry message makes. | Counter |
+| MessengerEventMiddleware | This middleware increases a counter for every step a message makes. | [Counter](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#counter) |
+| RetryMessengerEventMiddleware | This middleware increases a counter for every step a retry message makes. | [Counter](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#counter) |
 
 Messenger metrics via events
 ----------------------------
 
 | Subscriber | Events | Description | Metric |
 | ---------- | ------ | ----------- | ------ |
-| ActiveWorkersMetricEventSubscriber | [WorkerStartedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerStartedEvent.php), [WorkerStoppedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerStoppedEvent.php) | This subscriber keeps track of currently active workers. | Gauge |
-| MessagesInProcessMetricEventSubscriber | [WorkerMessageReceivedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerMessageReceivedEvent.php), [WorkerMessageHandledEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerMessageHandledEvent.php), [WorkerMessageFailedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerMessageFailedEvent.php) | This subscriber keeps track of messages that are currently being processed. | Gauge |
+| ActiveWorkersMetricEventSubscriber | [WorkerStartedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerStartedEvent.php), [WorkerStoppedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerStoppedEvent.php) | This subscriber keeps track of currently active workers. | [Gauge](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#gauge) |
+| MessagesInProcessMetricEventSubscriber | [WorkerMessageReceivedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerMessageReceivedEvent.php), [WorkerMessageHandledEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerMessageHandledEvent.php), [WorkerMessageFailedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerMessageFailedEvent.php) | This subscriber keeps track of messages that are currently being processed. | [Gauge](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#gauge) |
+| MessagesInTransportMetricEventSubscriber | [SendMessageToTransportsEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/SendMessageToTransportsEvent.php), [WorkerMessageReceivedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerMessageReceivedEvent.php) | This subscriber keeps track of messages that are currently being transfered. | [Gauge](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#gauge) |
 
 Installation for applications that use Symfony Flex
 ---------------------------------------------------
@@ -157,6 +158,7 @@ services:
     # Messenger Events
     TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\ActiveWorkersMetricEventSubscriber: ~
     TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInProcessMetricEventSubscriber: ~
+    TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInTransportMetricEventSubscriber: ~
 ```
 
 Example for the `ActiveWorkersMetricEventSubscriber`:
@@ -172,6 +174,14 @@ Example for the `MessagesInProcessMetricEventSubscriber`:
 # TYPE messenger_events_messages_in_process gauge
 messenger_events_messages_in_process{message_path="App\\Message\\FailingFooBarMessage",message_class="FailingFooBarMessage",receiver="async",bus="messenger_bus_default"} 1
 messenger_events_messages_in_process{message_path="App\\Message\\FooBarMessage",message_class="FooBarMessage",receiver="async",bus="messenger_bus_default"} 0
+```
+
+Example for the `MessagesInTransportMetricEventSubscriber`:
+```bash
+# HELP messenger_events_messages_in_transport Messages In Transport
+# TYPE messenger_events_messages_in_transport gauge
+messenger_events_messages_in_transport{message_path="App\\Message\\FailingFooBarMessage",message_class="FailingFooBarMessage",bus="messenger_bus_default"} 0
+messenger_events_messages_in_transport{message_path="App\\Message\\FooBarMessage",message_class="FooBarMessage",bus="messenger_bus_default"} 1412
 ```
 
 Testing
