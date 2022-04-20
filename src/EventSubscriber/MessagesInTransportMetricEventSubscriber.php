@@ -14,6 +14,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 use Prometheus\Gauge;
 use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
@@ -53,11 +54,16 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
 
     public function onWorkerMessageReceived(WorkerMessageReceivedEvent $event): void
     {
-        if ($event->getEnvelope()->last(RedeliveryStamp::class)) {
+        if ($this->isRedelivered($event->getEnvelope())) {
             return;
         }
 
         $this->messagesInTransportGauge()->dec($this->messagesInTransportLabels($event));
+    }
+
+    private function isRedelivered(Envelope $envelope): bool
+    {
+        return $envelope->last(RedeliveryStamp::class) !== null;
     }
 
     private function messagesInTransportGauge(): Gauge

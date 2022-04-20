@@ -29,6 +29,7 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
     private MessagesInTransportMetricEventSubscriber $subscriber;
 
     private const NAMESPACE = 'messenger_events';
+    private const METRIC = 'messages_in_transport';
 
     protected function setUp(): void
     {
@@ -54,12 +55,11 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
                 new Envelope(
                     new FooBarMessage(),
                     [new BusNameStamp('foobar_bus')],
-                )
-            )
+                ),
+            ),
         );
 
-        $messagesInProcessMetric = 'messages_in_transport';
-        $gauge = $this->registry->getGauge(self::NAMESPACE, $messagesInProcessMetric);
+        $gauge = $this->registry->getGauge(self::NAMESPACE, self::METRIC);
         $this->assertEquals(
             ['message_path', 'message_class', 'bus'],
             $gauge->getLabelNames(),
@@ -83,7 +83,7 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
     public function testCollectWorkerMessageReceivedMetricSuccessfully(): void
     {
         $this->subscriber->onWorkerMessageReceived(
-            new WorkerMessageReceivedEvent(new Envelope(new FooBarMessage()), '')
+            new WorkerMessageReceivedEvent(new Envelope(new FooBarMessage()), ''),
         );
 
         $metrics = $this->registry->getMetricFamilySamples();
@@ -99,7 +99,7 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
         $envelope = new Envelope(new FooBarMessage(), [new BusNameStamp('foobar_bus')]);
 
         $this->subscriber->onSendMessageToTransports(
-            new SendMessageToTransportsEvent($envelope)
+            new SendMessageToTransportsEvent($envelope),
         );
 
         $this->subscriber->onWorkerMessageReceived(
@@ -124,10 +124,34 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
                     new FooBarMessage(),
                     [new RedeliveryStamp(1)]
                 ),
-                ''
-            )
+                '',
+            ),
         );
 
-        $this->registry->getGauge(self::NAMESPACE, 'messages_in_transport');
+        $this->registry->getGauge(self::NAMESPACE, self::METRIC);
+    }
+
+    public function testCollectMessagesInTransportMetricNotNegativOnRetry(): void
+    {
+        $envelope = new Envelope(new FooBarMessage(), [new BusNameStamp('foobar_bus')]);
+
+        $this->subscriber->onSendMessageToTransports(
+            new SendMessageToTransportsEvent($envelope),
+        );
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent($envelope, ''),
+        );
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent($envelope->with(new RedeliveryStamp(1)), ''),
+        );
+
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $expectedMetricGauge = 0;
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
     }
 }
