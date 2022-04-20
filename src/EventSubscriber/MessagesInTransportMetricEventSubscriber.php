@@ -15,6 +15,7 @@ use Prometheus\Gauge;
 use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
 class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterface
@@ -40,6 +41,7 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
     {
         return [
             SendMessageToTransportsEvent::class => 'onSendMessageToTransports',
+            WorkerMessageReceivedEvent::class => 'onWorkerMessageReceived',
         ];
     }
 
