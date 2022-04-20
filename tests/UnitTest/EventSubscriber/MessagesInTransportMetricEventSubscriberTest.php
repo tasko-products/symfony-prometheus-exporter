@@ -49,6 +49,10 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
         );
 
         $messagesInProcessMetric = 'messages_in_transport';
-        $this->registry->getGauge(self::NAMESPACE, $messagesInProcessMetric);
+        $gauge = $this->registry->getGauge(self::NAMESPACE, $messagesInProcessMetric);
+        $this->assertEquals(
+            ['message_path', 'message_class', 'bus'],
+            $gauge->getLabelNames(),
+        );
     }
 }
