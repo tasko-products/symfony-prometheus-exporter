@@ -13,6 +13,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Trait;
 
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
+use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 
 trait EnvelopeMethodesTrait
 {
@@ -36,5 +37,10 @@ trait EnvelopeMethodesTrait
     private function messageClassLabel(Envelope $envelope): string
     {
         return \substr((string)\strrchr($this->messageClassPathLabel($envelope), '\\'), 1);
+    }
+
+    private function isRedelivered(Envelope $envelope): bool
+    {
+        return $envelope->last(RedeliveryStamp::class) !== null;
     }
 }

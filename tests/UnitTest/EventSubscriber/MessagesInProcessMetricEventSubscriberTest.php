@@ -31,6 +31,7 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
     private MessagesInProcessMetricEventSubscriber $subscriber;
 
     private const NAMESPACE = 'messenger_events';
+    private const METRIC = 'messages_in_process';
 
     protected function setUp(): void
     {
@@ -58,14 +59,13 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
                     new FooBarMessage(),
                     [new BusNameStamp('foobar_bus')],
                 ),
-                'foobar_receiver'
-            )
+                'foobar_receiver',
+            ),
         );
 
-        $messagesInProcessMetric = 'messages_in_process';
-        $gauge = $this->registry->getGauge(self::NAMESPACE, $messagesInProcessMetric);
+        $gauge = $this->registry->getGauge(self::NAMESPACE, self::METRIC);
 
-        $this->assertEquals(self::NAMESPACE . '_' . $messagesInProcessMetric, $gauge->getName());
+        $this->assertEquals(self::NAMESPACE . '_' . self::METRIC, $gauge->getName());
         $this->assertEquals(
             ['message_path', 'message_class', 'receiver', 'bus'],
             $gauge->getLabelNames(),
@@ -90,7 +90,7 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
     public function testCollectWorkerMessageHandledMetricSuccessfully(): void
     {
         $this->subscriber->onWorkerMessageHandled(
-            new WorkerMessageHandledEvent(new Envelope(new FooBarMessage()), 'foobar_receiver')
+            new WorkerMessageHandledEvent(new Envelope(new FooBarMessage()), 'foobar_receiver'),
         );
 
         $metrics = $this->registry->getMetricFamilySamples();
@@ -128,8 +128,8 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
             new WorkerMessageFailedEvent(
                 new Envelope(new FooBarMessage()),
                 'foobar_receiver',
-                new Exception('boom!')
-            )
+                new Exception('boom!'),
+            ),
         );
 
         $metrics = $this->registry->getMetricFamilySamples();
@@ -150,7 +150,7 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         );
 
         $this->subscriber->onWorkerMessageFailed(
-            new WorkerMessageFailedEvent($envelope, $receiver, new Exception('boom!'))
+            new WorkerMessageFailedEvent($envelope, $receiver, new Exception('boom!')),
         );
 
         $metrics = $this->registry->getMetricFamilySamples();
@@ -168,14 +168,14 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         $event = new WorkerMessageFailedEvent(
             new Envelope(new FooBarMessage()),
             'foobar_receiver',
-            new Exception('boom!')
+            new Exception('boom!'),
         );
 
         $event->setForRetry();
 
         $this->subscriber->onWorkerMessageFailed($event);
 
-        $this->registry->getGauge(self::NAMESPACE, 'messages_in_process');
+        $this->registry->getGauge(self::NAMESPACE, self::METRIC);
     }
 
     public function testCollectWorkerMessageReceivedMetricSuccessfullyAndIgnoreRetryingFailureEvent(): void
@@ -209,12 +209,45 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
             new WorkerMessageReceivedEvent(
                 new Envelope(
                     new FooBarMessage(),
-                    [new RedeliveryStamp(1)]
+                    [new RedeliveryStamp(1)],
                 ),
                 '',
             ),
         );
 
-        $this->registry->getGauge(self::NAMESPACE, 'messages_in_process');
+        $this->registry->getGauge(self::NAMESPACE, self::METRIC);
+    }
+
+    public function testCollectMessagesInProgressMetricIgnoresRedeliveredWorkerMessageReceived(): void
+    {
+        $envelope = new Envelope(new FooBarMessage(), [new BusNameStamp('foobar_bus')]);
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent($envelope, ''),
+        );
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent($envelope->with(new RedeliveryStamp(1)), ''),
+        );
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent($envelope->with(new RedeliveryStamp(2)), ''),
+        );
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent($envelope->with(new RedeliveryStamp(3)), ''),
+        );
+
+        $this->subscriber->onWorkerMessageHandled(
+            new WorkerMessageHandledEvent($envelope, ''),
+        );
+
+
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $expectedMetricGauge = 0;
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
     }
 }

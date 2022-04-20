@@ -60,6 +60,7 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
         );
 
         $gauge = $this->registry->getGauge(self::NAMESPACE, self::METRIC);
+        $this->assertEquals(self::NAMESPACE . '_' . self::METRIC, $gauge->getName());
         $this->assertEquals(
             ['message_path', 'message_class', 'bus'],
             $gauge->getLabelNames(),
