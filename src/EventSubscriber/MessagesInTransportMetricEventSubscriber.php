@@ -52,6 +52,7 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
 
     public function onWorkerMessageReceived(WorkerMessageReceivedEvent $event): void
     {
+        $this->messagesInTransportGauge()->dec($this->messagesInTransportLabels($event));
     }
 
     private function messagesInTransportGauge(): Gauge
@@ -67,7 +68,7 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
     /**
      * @return string[]
      */
-    private function messagesInTransportLabels(SendMessageToTransportsEvent $event): array
+    private function messagesInTransportLabels(SendMessageToTransportsEvent|WorkerMessageReceivedEvent $event): array
     {
         $envelope = $event->getEnvelope();
 
