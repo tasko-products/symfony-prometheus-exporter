@@ -13,6 +13,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\EventSubs
 
 use Exception;
 use PHPUnit\Framework\TestCase;
+use Prometheus\Exception\MetricNotFoundException;
 use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
@@ -161,6 +162,8 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
 
     public function testIgnoreWorkerMessageFailedWithWillRetryTrue(): void
     {
+        $this->expectException(MetricNotFoundException::class);
+
         $event = new WorkerMessageFailedEvent(
             new Envelope(new FooBarMessage()),
             'foobar_receiver',
@@ -171,12 +174,6 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
 
         $this->subscriber->onWorkerMessageFailed($event);
 
-        $metrics = $this->registry->getMetricFamilySamples();
-        $samples = $metrics[1]->getSamples();
-
-        $expectedMetricGauge = 0;
-
-        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+        $this->registry->getGauge(self::NAMESPACE, 'messages_in_process');
     }
-
 }

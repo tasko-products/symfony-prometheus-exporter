@@ -60,6 +60,10 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
 
     public function onWorkerMessageFailed(WorkerMessageFailedEvent $event): void
     {
+        if ($event->willRetry()) {
+            return;
+        }
+
         $this->decMetric($event);
     }
 
