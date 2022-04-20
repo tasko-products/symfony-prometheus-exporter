@@ -11,12 +11,31 @@ metrics for your Symfony application, stored in your Redis repository.
 Each metric collector can be enabled and disabled separately, so you can decide for
 your app which data to collect and provide to the Prometheus query.
 
-- messenger event metrics via middleware
+- messenger metrics via middleware
+- messenger metrics via events
 - request metrics
 - logging metrics
 - custom metrics via the Collector composition
 
 This Symfony bundle is based on the unoffical Prometheus PHP client [PHP library](https://github.com/PromPHP/prometheus_client_php).
+
+Messenger metrics via middleware
+--------------------------------
+
+The counters will be incremented when a message is dispatched, as well as when it is received from a worker.
+
+| Middleware | Description | Metric |
+| -----------| ----------- | ------ |
+| MessengerEventMiddleware | This middleware increases a counter for every step a message makes. | Counter |
+| RetryMessengerEventMiddleware | This middleware increases a counter for every step a retry message makes. | Counter |
+
+Messenger metrics via events
+----------------------------
+
+| Subscriber | Events | Description | Metric |
+| ---------- | ------ | ----------- | ------ |
+| ActiveWorkersMetricEventSubscriber | [WorkerStartedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerStartedEvent.php), [WorkerStoppedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerStoppedEvent.php) | This subscriber keeps track of currently active workers. | Gauge |
+| MessagesInProcessMetricEventSubscriber | [WorkerMessageReceivedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerMessageReceivedEvent.php), [WorkerMessageHandledEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerMessageHandledEvent.php), [WorkerMessageFailedEvent](https://github.com/symfony/symfony/blob/5.4/src/Symfony/Component/Messenger/Event/WorkerMessageFailedEvent.php) | This subscriber keeps track of messages that are currently being processed. | Gauge |
 
 Installation for applications that use Symfony Flex
 ---------------------------------------------------
@@ -55,9 +74,9 @@ return [
 Configuration
 -------------
 
-### Enable the message bus metrics collector (optional)
+### Prometheus configuration
 
-To enable the message bus metrics collector, add the `Prometheus` configuration to your services.
+Add the `Prometheus` configuration to your services.
 
 ```yml
 # app/config/services.yml
@@ -79,12 +98,15 @@ services:
     Prometheus\RegistryInterface: '@Prometheus\CollectorRegistry'
 ```
 
-Next, register the Symfony Messenger middlewares as necessary.
+### Enable the message bus metrics collector (optional)
+
+Register the Symfony Messenger middlewares as necessary.
 
 ```yml
 # app/config/services.yml
 
 services: 
+    # Messenger Middleware
     TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware: ~
     TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware: ~
 ```
@@ -122,6 +144,34 @@ Example for the `RetryMessengerEventMiddleware`:
 message_bus_commands_retry_message{message="App\\Message\\FailingFooBarMessage",label="FailingFooBarMessage",retry="0"} 0
 message_bus_commands_retry_message{message="App\\Message\\FooBarMessage",label="FooBarMessage",retry="0"} 0
 message_bus_commands_retry_message{message="App\\Message\\FooBarMessage",label="FooBarMessage",retry="2"} 666
+```
+
+### Enable the messager event subscriber metric collectors (optional)
+
+Register the desired event subscribers as necessary.
+
+```yml
+# app/config/services.yml
+
+services: 
+    # Messenger Events
+    TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\ActiveWorkersMetricEventSubscriber: ~
+    TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInProcessMetricEventSubscriber: ~
+```
+
+Example for the `ActiveWorkersMetricEventSubscriber`:
+```bash
+# HELP messenger_events_active_workers Active Workers
+# TYPE messenger_events_active_workers gauge
+messenger_events_active_workers{queue_names="default_queue, priority_queue",transport_names="async"} 1
+```
+
+Example for the `MessagesInProcessMetricEventSubscriber`:
+```bash
+# HELP messenger_events_messages_in_process Messages In Process
+# TYPE messenger_events_messages_in_process gauge
+messenger_events_messages_in_process{message_path="App\\Message\\FailingFooBarMessage",message_class="FailingFooBarMessage",receiver="async",bus="messenger_bus_default"} 1
+messenger_events_messages_in_process{message_path="App\\Message\\FooBarMessage",message_class="FooBarMessage",receiver="async",bus="messenger_bus_default"} 0
 ```
 
 Testing

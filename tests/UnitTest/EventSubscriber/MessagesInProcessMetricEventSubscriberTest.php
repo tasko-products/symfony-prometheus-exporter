@@ -176,4 +176,27 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
 
         $this->registry->getGauge(self::NAMESPACE, 'messages_in_process');
     }
+
+    public function testCollectWorkerMessageReceivedMetricSuccessfullyAndIgnoreRetryingFailureEvent(): void
+    {
+        $envelope = new Envelope(new FooBarMessage());
+        $receiver = 'foobar_receiver';
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent($envelope, $receiver),
+        );
+
+        $failureEvent = new WorkerMessageFailedEvent($envelope, $receiver, new Exception('boom!'));
+
+        $failureEvent->setForRetry();
+
+        $this->subscriber->onWorkerMessageFailed($failureEvent);
+
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $expectedMetricGauge = 1;
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
 }
