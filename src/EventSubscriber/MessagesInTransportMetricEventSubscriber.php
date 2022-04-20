@@ -11,11 +11,17 @@ declare(strict_types=1);
 
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 
+use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 
 class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterface
 {
+    public function __construct(
+        private RegistryInterface $registry,
+    ) {
+    }
+
     /**
      * @inheritDoc
      */
@@ -24,5 +30,9 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
         return [
             SendMessageToTransportsEvent::class => 'onSendMessageToTransports',
         ];
+    }
+
+    public function onSendMessageToTransports(SendMessageToTransportsEvent $event): void
+    {
     }
 }

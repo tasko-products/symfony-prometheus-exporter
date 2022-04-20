@@ -12,11 +12,26 @@ declare(strict_types=1);
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\EventSubscriber;
 
 use PHPUnit\Framework\TestCase;
+use Prometheus\RegistryInterface;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInTransportMetricEventSubscriber;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessage;
 
 class MessagesInTransportMetricEventSubscriberTest extends TestCase
 {
+    private RegistryInterface $registry;
+    private MessagesInTransportMetricEventSubscriber $subscriber;
+
+    private const NAMESPACE = 'messenger_events';
+
+    protected function setUp(): void
+    {
+        $this->registry = PrometheusCollectorRegistryFactory::create();
+        $this->subscriber = new MessagesInTransportMetricEventSubscriber($this->registry);
+    }
+
     public function testRequiredMessagesInProcessEventsSubscribed(): void
     {
         $this->assertEquals(
@@ -25,5 +40,15 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
             ],
             array_keys(MessagesInTransportMetricEventSubscriber::getSubscribedEvents()),
         );
+    }
+
+    public function testCollectWorkerMessageReceivedMetricSuccessfully(): void
+    {
+        $this->subscriber->onSendMessageToTransports(
+            new SendMessageToTransportsEvent(new Envelope(new FooBarMessage(), []))
+        );
+
+        $messagesInProcessMetric = 'messages_in_transport';
+        $this->registry->getGauge(self::NAMESPACE, $messagesInProcessMetric);
     }
 }
