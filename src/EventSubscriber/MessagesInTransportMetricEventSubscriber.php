@@ -15,9 +15,12 @@ use Prometheus\Gauge;
 use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
 class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterface
 {
+    use EnvelopeMethodesTrait;
+
     /**
      * @param string[] $labels
      */
@@ -42,7 +45,7 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
 
     public function onSendMessageToTransports(SendMessageToTransportsEvent $event): void
     {
-        $this->messagesInTransportGauge()->inc(['', '', '']);
+        $this->messagesInTransportGauge()->inc($this->messagesInTransportLabels($event));
     }
 
     private function messagesInTransportGauge(): Gauge
@@ -53,5 +56,19 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
             $this->helpText,
             $this->labels,
         );
+    }
+
+    /**
+     * @return string[]
+     */
+    private function messagesInTransportLabels(SendMessageToTransportsEvent $event): array
+    {
+        $envelope = $event->getEnvelope();
+
+        return [
+            $this->messageClassPathLabel($envelope),
+            $this->messageClassLabel($envelope),
+            $this->extractBusName($envelope),
+        ];
     }
 }
