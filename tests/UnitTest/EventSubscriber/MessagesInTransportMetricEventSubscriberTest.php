@@ -17,6 +17,7 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
+use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInTransportMetricEventSubscriber;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessage;
@@ -88,6 +89,46 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
         $samples = $metrics[1]->getSamples();
 
         $expectedMetricGauge = -1;
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
+
+    public function testCollectSendMessageToTransportsAndWorkerMessageReceivedMetricSuccessfully(): void
+    {
+        $envelope = new Envelope(new FooBarMessage(), [new BusNameStamp('foobar_bus')]);
+
+        $this->subscriber->onSendMessageToTransports(
+            new SendMessageToTransportsEvent($envelope)
+        );
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent($envelope, ''),
+        );
+
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $expectedMetricGauge = 0;
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
+
+    public function testIgnoreRedeliveredWorkerMessageReceivedEvents(): void
+    {
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent(
+                new Envelope(
+                    new FooBarMessage(),
+                    [new RedeliveryStamp(1)]
+                ),
+                ''
+            )
+        );
+
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $expectedMetricGauge = 0;
 
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
     }
