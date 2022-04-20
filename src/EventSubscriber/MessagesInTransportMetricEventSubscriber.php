@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 
 class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterface
 {
@@ -20,6 +21,8 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
      */
     public static function getSubscribedEvents(): array
     {
-        return [];
+        return [
+            SendMessageToTransportsEvent::class => 'onSendMessageToTransports',
+        ];
     }
 }
