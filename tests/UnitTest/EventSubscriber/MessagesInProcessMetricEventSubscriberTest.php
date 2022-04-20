@@ -158,4 +158,25 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
 
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
     }
+
+    public function testIgnoreWorkerMessageFailedWithWillRetryTrue(): void
+    {
+        $event = new WorkerMessageFailedEvent(
+            new Envelope(new FooBarMessage()),
+            'foobar_receiver',
+            new Exception('boom!')
+        );
+
+        $event->setForRetry();
+
+        $this->subscriber->onWorkerMessageFailed($event);
+
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $expectedMetricGauge = 0;
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
+
 }
