@@ -45,7 +45,7 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
         );
     }
 
-    public function testCollectWorkerMessageReceivedMetricSuccessfully(): void
+    public function testCollectSendMessageToTransportsMetricSuccessfully(): void
     {
         $this->subscriber->onSendMessageToTransports(
             new SendMessageToTransportsEvent(
@@ -76,5 +76,19 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
             ],
             $samples[0]->getLabelValues(),
         );
+    }
+
+    public function testCollectWorkerMessageReceivedMetricSuccessfully(): void
+    {
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent(new Envelope(new FooBarMessage()), '')
+        );
+
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $expectedMetricGauge = -1;
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
     }
 }

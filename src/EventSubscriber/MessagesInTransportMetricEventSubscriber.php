@@ -50,6 +50,10 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
         $this->messagesInTransportGauge()->inc($this->messagesInTransportLabels($event));
     }
 
+    public function onWorkerMessageReceived(WorkerMessageReceivedEvent $event): void
+    {
+    }
+
     private function messagesInTransportGauge(): Gauge
     {
         return $this->registry->getOrRegisterGauge(
