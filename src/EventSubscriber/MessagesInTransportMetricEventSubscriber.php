@@ -16,6 +16,7 @@ use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
+use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
 class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterface
@@ -52,6 +53,10 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
 
     public function onWorkerMessageReceived(WorkerMessageReceivedEvent $event): void
     {
+        if ($event->getEnvelope()->last(RedeliveryStamp::class)) {
+            return;
+        }
+
         $this->messagesInTransportGauge()->dec($this->messagesInTransportLabels($event));
     }
 

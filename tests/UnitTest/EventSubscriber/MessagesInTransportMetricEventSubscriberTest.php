@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\EventSubscriber;
 
 use PHPUnit\Framework\TestCase;
+use Prometheus\Exception\MetricNotFoundException;
 use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
@@ -115,6 +116,8 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
 
     public function testIgnoreRedeliveredWorkerMessageReceivedEvents(): void
     {
+        $this->expectException(MetricNotFoundException::class);
+
         $this->subscriber->onWorkerMessageReceived(
             new WorkerMessageReceivedEvent(
                 new Envelope(
@@ -125,11 +128,6 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
             )
         );
 
-        $metrics = $this->registry->getMetricFamilySamples();
-        $samples = $metrics[1]->getSamples();
-
-        $expectedMetricGauge = 0;
-
-        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+        $this->registry->getGauge(self::NAMESPACE, 'messages_in_transport');
     }
 }
