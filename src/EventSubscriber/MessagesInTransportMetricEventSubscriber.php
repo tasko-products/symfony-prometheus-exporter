@@ -18,11 +18,15 @@ use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 
 class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterface
 {
+    /**
+     * @param string[] $labels
+     */
     public function __construct(
         private RegistryInterface $registry,
         private string $messengerNamespace = 'messenger_events',
         private string $messagesInTransportMetricName = 'messages_in_transport',
         private string $helpText = 'Messages In Transport',
+        private array  $labels = ['message_path', 'message_class', 'bus'],
     ) {
     }
 
@@ -38,7 +42,7 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
 
     public function onSendMessageToTransports(SendMessageToTransportsEvent $event): void
     {
-        $this->messagesInTransportGauge()->inc();
+        $this->messagesInTransportGauge()->inc(['', '', '']);
     }
 
     private function messagesInTransportGauge(): Gauge
@@ -47,6 +51,7 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
             $this->messengerNamespace,
             $this->messagesInTransportMetricName,
             $this->helpText,
+            $this->labels,
         );
     }
 }
