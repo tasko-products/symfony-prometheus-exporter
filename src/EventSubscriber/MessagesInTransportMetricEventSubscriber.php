@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 
+use Prometheus\Gauge;
 use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
@@ -19,6 +20,9 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
 {
     public function __construct(
         private RegistryInterface $registry,
+        private string $messengerNamespace = 'messenger_events',
+        private string $messagesInTransportMetricName = 'messages_in_transport',
+        private string $helpText = 'Messages In Transport',
     ) {
     }
 
@@ -34,5 +38,15 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
 
     public function onSendMessageToTransports(SendMessageToTransportsEvent $event): void
     {
+        $this->messagesInTransportGauge()->inc();
+    }
+
+    private function messagesInTransportGauge(): Gauge
+    {
+        return $this->registry->getOrRegisterGauge(
+            $this->messengerNamespace,
+            $this->messagesInTransportMetricName,
+            $this->helpText,
+        );
     }
 }
