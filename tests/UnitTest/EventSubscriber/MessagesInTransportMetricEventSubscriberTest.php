@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
 use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInTransportMetricEventSubscriber;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
@@ -38,6 +39,7 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
         $this->assertEquals(
             [
                 SendMessageToTransportsEvent::class,
+                WorkerMessageReceivedEvent::class,
             ],
             array_keys(MessagesInTransportMetricEventSubscriber::getSubscribedEvents()),
         );
