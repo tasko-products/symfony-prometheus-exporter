@@ -14,10 +14,12 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 use Prometheus\Gauge;
 use Prometheus\RegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\AbstractWorkerMessageEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
+use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
 class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
@@ -50,6 +52,10 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
 
     public function onWorkerMessageReceived(WorkerMessageReceivedEvent $event): void
     {
+        if ($this->isRedelivered($event->getEnvelope())) {
+            return;
+        }
+
         $this->messagesInProcessGauge()->inc($this->messagesInProcessLabels($event));
     }
 
@@ -65,6 +71,11 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
         }
 
         $this->decMetric($event);
+    }
+
+    private function isRedelivered(Envelope $envelope): bool
+    {
+        return $envelope->last(RedeliveryStamp::class) !== null;
     }
 
     private function decMetric(WorkerMessageHandledEvent|WorkerMessageFailedEvent $event): void
