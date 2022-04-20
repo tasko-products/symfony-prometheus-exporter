@@ -20,6 +20,7 @@ use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
+use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInProcessMetricEventSubscriber;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessage;
@@ -198,5 +199,22 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         $expectedMetricGauge = 1;
 
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
+
+    public function testIgnoreRedeliveredWorkerMessageReceivedEvents(): void
+    {
+        $this->expectException(MetricNotFoundException::class);
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent(
+                new Envelope(
+                    new FooBarMessage(),
+                    [new RedeliveryStamp(1)]
+                ),
+                '',
+            ),
+        );
+
+        $this->registry->getGauge(self::NAMESPACE, 'messages_in_process');
     }
 }
