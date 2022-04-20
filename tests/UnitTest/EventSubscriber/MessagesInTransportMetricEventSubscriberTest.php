@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
+use Symfony\Component\Messenger\Stamp\BusNameStamp;
 use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInTransportMetricEventSubscriber;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessage;
@@ -45,7 +46,12 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
     public function testCollectWorkerMessageReceivedMetricSuccessfully(): void
     {
         $this->subscriber->onSendMessageToTransports(
-            new SendMessageToTransportsEvent(new Envelope(new FooBarMessage(), []))
+            new SendMessageToTransportsEvent(
+                new Envelope(
+                    new FooBarMessage(),
+                    [new BusNameStamp('foobar_bus')],
+                )
+            )
         );
 
         $messagesInProcessMetric = 'messages_in_transport';
@@ -53,6 +59,20 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
         $this->assertEquals(
             ['message_path', 'message_class', 'bus'],
             $gauge->getLabelNames(),
+        );
+
+        $expectedMetricGauge = 1;
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+        $this->assertEquals(
+            [
+                FooBarMessage::class,
+                'FooBarMessage',
+                'foobar_bus',
+            ],
+            $samples[0]->getLabelValues(),
         );
     }
 }
