@@ -23,6 +23,7 @@ services:
       - { name: kernel.event_subscriber }
 
   # Middlewares
+  ## Definition
   tasko_products_symfony_prometheus_exporter.messenger_event_middleware:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware
     arguments:
@@ -32,6 +33,12 @@ services:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware
     arguments:
       $registry: '@Prometheus\RegistryInterface'
+
+  ## Aliases
+  TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware: '@tasko_products_symfony_prometheus_exporter.messenger_event_middleware'
+  TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware: '@tasko_products_symfony_prometheus_exporter.retry_messenger_event_middleware'
+
+  # Prometheus Aliases
 
   # For redis use this:
   # Prometheus\Storage\Redis:
