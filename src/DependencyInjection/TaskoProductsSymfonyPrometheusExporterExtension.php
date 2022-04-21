@@ -23,7 +23,22 @@ class TaskoProductsSymfonyPrometheusExporterExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container): void
     {
+        $this->loadService($container);
+        $this->loadConfiguration($configs, $container);
+    }
+
+    private function loadService(ContainerBuilder $container): void
+    {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yaml');
+    }
+
+    private function loadConfiguration(array $configs, ContainerBuilder $container): void
+    {
+        $configuration = new Configuration();
+        $config = $this->processConfiguration($configuration, $configs);
+        foreach ($config as $key => $value) {
+            $container->setParameter('prometheus_metrics.' . $key, $value);
+        }
     }
 }
