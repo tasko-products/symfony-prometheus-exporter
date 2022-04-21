@@ -1,0 +1,39 @@
+services:
+
+  # Event Subscribers
+  tasko_products_symfony_prometheus_exporter.active_workers_metric_subscriber:
+    class: TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\ActiveWorkersMetricEventSubscriber
+    tags:
+      - { name: kernel.event_subscriber }
+
+  tasko_products_symfony_prometheus_exporter.messages_in_process_metric_subscriber:
+    class: TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInProcessMetricEventSubscriber
+    tags:
+      - { name: kernel.event_subscriber }
+
+  tasko_products_symfony_prometheus_exporter.messages_in_transport_metric_subscriber:
+    class: TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInTransportMetricEventSubscriber
+    tags:
+      - { name: kernel.event_subscriber }
+
+    # Middlewares
+  tasko_products_symfony_prometheus_exporter.messenger_event_middleware:
+    class: TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware
+
+  tasko_products_symfony_prometheus_exporter.retry_messenger_event_middleware:
+    class: TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware
+
+  # For redis use this:
+  # Prometheus\Storage\Redis:
+  #     arguments:
+  #         - host: '%env(PROMETHEUS_REDIS_HOST)%'
+  #           port: '%env(PROMETHEUS_REDIS_PORT)%'
+  #           password: '%env(PROMETHEUS_REDIS_PASSWORD)%'
+  #           timeout: '%env(PROMETHEUS_REDIS_TIMEOUT)%'
+  #           read_timeout: '%env(PROMETHEUS_REDIS_READ_TIMEOUT)%'
+  #           persistent_connections: '%env(PROMETHEUS_REDIS_PERSISTENT_CONNECTIONS)%'
+  # Prometheus\CollectorRegistry: ['@Prometheus\Storage\Redis']
+
+  Prometheus\Storage\InMemory: ~
+  Prometheus\CollectorRegistry: ['@Prometheus\Storage\InMemory']
+  Prometheus\RegistryInterface: '@Prometheus\CollectorRegistry'
