@@ -3,25 +3,35 @@ services:
   # Event Subscribers
   tasko_products_symfony_prometheus_exporter.active_workers_metric_subscriber:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\ActiveWorkersMetricEventSubscriber
+    arguments:
+      $registry: '@Prometheus\RegistryInterface'
     tags:
       - { name: kernel.event_subscriber }
 
   tasko_products_symfony_prometheus_exporter.messages_in_process_metric_subscriber:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInProcessMetricEventSubscriber
+    arguments:
+      $registry: '@Prometheus\RegistryInterface'
     tags:
       - { name: kernel.event_subscriber }
 
   tasko_products_symfony_prometheus_exporter.messages_in_transport_metric_subscriber:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInTransportMetricEventSubscriber
+    arguments:
+      $registry: '@Prometheus\RegistryInterface'
     tags:
       - { name: kernel.event_subscriber }
 
-    # Middlewares
+  # Middlewares
   tasko_products_symfony_prometheus_exporter.messenger_event_middleware:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware
+    arguments:
+      $registry: '@Prometheus\RegistryInterface'
 
   tasko_products_symfony_prometheus_exporter.retry_messenger_event_middleware:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware
+    arguments:
+      $registry: '@Prometheus\RegistryInterface'
 
   # For redis use this:
   # Prometheus\Storage\Redis:
