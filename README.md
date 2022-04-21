@@ -75,47 +75,40 @@ return [
 Configuration
 -------------
 
-### Prometheus configuration
+### Prometheus Redis configuration (optional)
 
-Add the `Prometheus` configuration to your services.
+Add the `Prometheus` Redis configuration to your services. 
 
 ```yml
-# app/config/services.yml
+# app/config/services.yaml
 
 services:
-    # For redis use this:
-    # Prometheus\Storage\Redis:
-    #     arguments:
-    #         - host: '%env(PROMETHEUS_REDIS_HOST)%'
-    #           port: '%env(PROMETHEUS_REDIS_PORT)%'
-    #           password: '%env(PROMETHEUS_REDIS_PASSWORD)%'
-    #           timeout: '%env(PROMETHEUS_REDIS_TIMEOUT)%'
-    #           read_timeout: '%env(PROMETHEUS_REDIS_READ_TIMEOUT)%'
-    #           persistent_connections: '%env(PROMETHEUS_REDIS_PERSISTENT_CONNECTIONS)%'
-    # Prometheus\CollectorRegistry: ['@Prometheus\Storage\Redis']
-
-    Prometheus\Storage\InMemory: ~
-    Prometheus\CollectorRegistry: ['@Prometheus\Storage\InMemory']
-    Prometheus\RegistryInterface: '@Prometheus\CollectorRegistry'
+    Prometheus\Storage\Redis:
+        arguments:
+            - host: '%env(PROMETHEUS_REDIS_HOST)%'
+              port: '%env(PROMETHEUS_REDIS_PORT)%'
+              password: '%env(PROMETHEUS_REDIS_PASSWORD)%'
+              # timeout: '%env(PROMETHEUS_REDIS_TIMEOUT)%'
+              # read_timeout: '%env(PROMETHEUS_REDIS_READ_TIMEOUT)%'
+              # persistent_connections: '%env(PROMETHEUS_REDIS_PERSISTENT_CONNECTIONS)%'
+    Prometheus\CollectorRegistry: ['@Prometheus\Storage\Redis']
 ```
 
-### Enable the message bus metrics collector (optional)
-
-Register the Symfony Messenger middlewares as necessary.
+By default, the bundle comes with an in-memory configuration:
 
 ```yml
-# app/config/services.yml
-
-services: 
-    # Messenger Middleware
-    TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware: ~
-    TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware: ~
+# Bundle: services.yaml
+Prometheus\Storage\InMemory: ~
+Prometheus\CollectorRegistry: ['@Prometheus\Storage\InMemory']
+Prometheus\RegistryInterface: '@Prometheus\CollectorRegistry'
 ```
 
-Now register the desired middlewares for your message bus(es).
+### Enable the symfony/messenger middleware metrics collector (optional)
+
+Register the desired middlewares for your message bus(es).
 
 ```yml
-# app/config/messenger.yml
+# app/config/messenger.yaml
 
 framework:
     messenger:
@@ -151,15 +144,7 @@ message_bus_commands_retry_message{message="App\\Message\\FooBarMessage",label="
 
 Register the desired event subscribers as necessary.
 
-```yml
-# app/config/services.yml
-
-services: 
-    # Messenger Events
-    TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\ActiveWorkersMetricEventSubscriber: ~
-    TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInProcessMetricEventSubscriber: ~
-    TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInTransportMetricEventSubscriber: ~
-```
+> todo: enable/ disable by service config
 
 Example for the `ActiveWorkersMetricEventSubscriber`:
 ```bash
