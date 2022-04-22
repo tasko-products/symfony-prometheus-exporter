@@ -21,6 +21,7 @@ use Symfony\Component\Messenger\WorkerMetadata;
 
 class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
 {
+    private RegistryInterface $registry;
     private string $messengerNamespace = '';
     private string $activeWorkersMetricName = '';
     private string $helpText = '';
@@ -30,9 +31,27 @@ class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
     private array $labels = [];
 
     public function __construct(
-        private RegistryInterface $registry,
-        private ParameterBagInterface $parameterBag,
+        RegistryInterface $registry,
+        ParameterBagInterface $parameterBag,
     ) {
+        $this->registry = $registry;
+
+        $pbKey = 'prometheus_metrics.event_subscribers';
+
+        /**
+         * @var array $subscriberConfig
+         */
+        $subscriberConfig = $parameterBag->has($pbKey)
+            ? $parameterBag->get($pbKey)['active_workers']
+            : [];
+
+        $this->messengerNamespace = $subscriberConfig['namespace'] ?? 'messenger_events';
+        $this->activeWorkersMetricName = $subscriberConfig['metric_name'] ?? 'active_workers';
+        $this->helpText = $subscriberConfig['help_text'] ?? 'Active Workers';
+        $this->labels = $subscriberConfig['labels'] ?? [
+            'queue_names' => 'queue_names',
+            'transport_names' => 'transport_names',
+        ];
     }
 
     /**
@@ -51,7 +70,7 @@ class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
         $data = $event->getWorker()->getMetadata();
 
         $this->activeWorkersGauge()->inc(
-            $this->activeWorkersLabels($data),
+            $this->activeWorkersLabelValues($data),
         );
     }
 
@@ -60,7 +79,7 @@ class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
         $data = $event->getWorker()->getMetadata();
 
         $this->activeWorkersGauge()->dec(
-            $this->activeWorkersLabels($data),
+            $this->activeWorkersLabelValues($data),
         );
     }
 
@@ -70,14 +89,25 @@ class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
             $this->messengerNamespace,
             $this->activeWorkersMetricName,
             $this->helpText,
-            $this->labels
+            $this->activeWorkersLabels(),
         );
     }
 
     /**
      * @return string[]
      */
-    private function activeWorkersLabels(WorkerMetadata $data): array
+    private function activeWorkersLabels(): array
+    {
+        return [
+            $this->labels['queue_names'],
+            $this->labels['transport_names'],
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
+    private function activeWorkersLabelValues(WorkerMetadata $data): array
     {
         return [
             \implode(', ', $data->getQueueNames() ?: []),
