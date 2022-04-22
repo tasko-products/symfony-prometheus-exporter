@@ -49,11 +49,14 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
         $this->subscriber = new ActiveWorkersMetricEventSubscriber($this->registry);
     }
 
-    public function testWorkerStartedEventIsSubscribedByActiveWorkersMetricEventSubscriber(): void
+    public function testRequiredActiveWorkerEventsSubscribed(): void
     {
-        $this->assertArrayHasKey(
-            WorkerStartedEvent::class,
-            ActiveWorkersMetricEventSubscriber::getSubscribedEvents()
+        $this->assertEquals(
+            [
+                WorkerStartedEvent::class,
+                WorkerStoppedEvent::class,
+            ],
+            array_keys(ActiveWorkersMetricEventSubscriber::getSubscribedEvents()),
         );
     }
 
@@ -78,14 +81,6 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
                 'transport, prio_transport',
             ],
             $samples[0]->getLabelValues(),
-        );
-    }
-
-    public function testWorkerStoppedEventIsSubscribedByActiveWorkersMetricEventSubscriber(): void
-    {
-        $this->assertArrayHasKey(
-            WorkerStoppedEvent::class,
-            ActiveWorkersMetricEventSubscriber::getSubscribedEvents()
         );
     }
 
