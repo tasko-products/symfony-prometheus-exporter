@@ -42,7 +42,7 @@ class ConfigurationProviderTest extends TestCase
         $this->assertIsArray($actualConfig);
         $this->assertEquals(
             [
-                'testconfig' => [
+                'testbundle.testconfig' => [
                     'config 1' => [
                         'value 1' => true,
                         'value 2' => 'foo',
