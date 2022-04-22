@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest;
+namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Middleware;
 
 use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
@@ -17,9 +17,9 @@ use Symfony\Component\Messenger\Middleware\AddBusNameStampMiddleware;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\MessageBusFactory;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Model\FooBarMessage;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Model\FooBarMessageHandler;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Model\FooBarMessageHandlerWithException;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessage;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessageHandler;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessageHandlerWithException;
 
 class MessengerEventMiddlewareTest extends TestCase
 {

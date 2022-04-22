@@ -9,11 +9,12 @@
 
 declare(strict_types=1);
 
-namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Model;
+namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture;
 
-class FooBarMessageHandler
+class FooBarMessageHandlerWithException
 {
     public function __invoke(FooBarMessage $message): void
     {
+        throw new \Exception('foo');
     }
 }
