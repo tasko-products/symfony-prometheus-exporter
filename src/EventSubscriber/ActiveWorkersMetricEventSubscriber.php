@@ -13,6 +13,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 
 use Prometheus\Gauge;
 use Prometheus\RegistryInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
@@ -20,15 +21,17 @@ use Symfony\Component\Messenger\WorkerMetadata;
 
 class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
 {
+    private string $messengerNamespace = '';
+    private string $activeWorkersMetricName = '';
+    private string $helpText = '';
     /**
-     * @param string[] $labels
+     * @var string[]
      */
+    private array $labels = [];
+
     public function __construct(
         private RegistryInterface $registry,
-        private string $messengerNamespace = 'messenger_events',
-        private string $activeWorkersMetricName = 'active_workers',
-        private string $helpText = 'Active Workers',
-        private array  $labels = ['queue_names', 'transport_names'],
+        private ParameterBagInterface $parameterBag,
     ) {
     }
 

@@ -13,6 +13,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\EventSubs
 
 use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
 use Symfony\Component\Messenger\Worker;
@@ -46,7 +47,10 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
                          ]
                      ]));
 
-        $this->subscriber = new ActiveWorkersMetricEventSubscriber($this->registry);
+        $this->subscriber = new ActiveWorkersMetricEventSubscriber(
+            $this->registry,
+            new ParameterBag(),
+        );
     }
 
     public function testRequiredActiveWorkerEventsSubscribed(): void
@@ -94,5 +98,44 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
         $samples = $metrics[1]->getSamples();
 
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
+
+    public function testConfigureSubscriberViaParameterBag(): void
+    {
+        $this->subscriber = new ActiveWorkersMetricEventSubscriber(
+            $this->registry,
+            new ParameterBag(
+                [
+                    'prometheus_metrics.event_subscribers' => [
+                        'active_workers' => [
+                            'enabled' => true,
+                            'namespace' => 'test_namespace',
+                            'metric_name' => 'test_metric',
+                            'help_text' => 'test help text',
+                            'labels' => [
+                                'queue_names' => 'test_queue_names',
+                                'transport_names' => 'test_transport_names',
+                            ],
+                        ],
+                    ],
+                ],
+            ),
+        );
+
+        $this->subscriber->onWorkerStarted(new WorkerStartedEvent($this->worker));
+        $this->subscriber->onWorkerStopped(new WorkerStoppedEvent($this->worker));
+
+        $gauge = $this->registry->getGauge('test_namespace', 'test_metric');
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[1]->getSamples();
+
+        $this->assertEquals('test_namespace_test_metric', $gauge->getName());
+        $this->assertEquals(
+            [
+                'test_queue_names',
+                'test_transport_names'
+            ],
+            $gauge->getLabelNames()
+        );
     }
 }
