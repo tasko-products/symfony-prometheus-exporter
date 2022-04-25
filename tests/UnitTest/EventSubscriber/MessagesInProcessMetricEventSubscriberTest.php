@@ -302,4 +302,33 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
             $gauge->getLabelNames()
         );
     }
+
+    public function testDisableSubscriberViaConfiguration(): void
+    {
+        $this->expectException(MetricNotFoundException::class);
+
+        $this->subscriber = new MessagesInProcessMetricEventSubscriber(
+            $this->registry,
+            new ConfigurationProvider(
+                new ParameterBag(
+                    [
+                        'prometheus_metrics.event_subscribers' => [
+                            'messages_in_process' => [
+                                'enabled' => false,
+                            ],
+                        ],
+                    ],
+                ),
+            ),
+        );
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent(
+                new Envelope(new FooBarMessage()),
+                'foobar_receiver',
+            ),
+        );
+
+        $this->registry->getGauge('messenger_events', 'messages_in_process');
+    }
 }
