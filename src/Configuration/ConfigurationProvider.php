@@ -16,8 +16,8 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 class ConfigurationProvider implements ConfigurationProviderInterface
 {
     public function __construct(
-        private string $configRoot = 'prometheus_metrics',
         private ParameterBagInterface $parameterBag,
+        private string $configRoot = 'prometheus_metrics',
     ) {
     }
 

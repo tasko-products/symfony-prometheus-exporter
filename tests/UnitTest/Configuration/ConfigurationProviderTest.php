@@ -20,7 +20,6 @@ class ConfigurationProviderTest extends TestCase
     public function testGetBundleConfigurationArray(): void
     {
         $config = new ConfigurationProvider(
-            'testbundle',
             new ParameterBag(
                 [
                     'testbundle.testconfig' => [
@@ -35,6 +34,7 @@ class ConfigurationProviderTest extends TestCase
                     ],
                 ],
             ),
+            'testbundle',
         );
 
         $actualConfig = $config->config();
@@ -55,5 +55,17 @@ class ConfigurationProviderTest extends TestCase
             ],
             $actualConfig,
         );
+    }
+
+    public function testGetNullOnEmptyBundleConfiguration(): void
+    {
+        $config = new ConfigurationProvider(
+            new ParameterBag(),
+            'testbundle',
+        );
+
+        $actualConfig = $config->config();
+
+        $this->assertNull($actualConfig);
     }
 }
