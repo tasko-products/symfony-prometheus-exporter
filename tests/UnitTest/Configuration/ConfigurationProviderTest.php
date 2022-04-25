@@ -87,4 +87,44 @@ class ConfigurationProviderTest extends TestCase
         $expectedValue = 1337;
         $this->assertEquals($expectedValue, $actualConfig);
     }
+
+    public function testGetConfigForNotExistingConfigPath(): void
+    {
+        $config = new ConfigurationProvider(
+            new ParameterBag(
+                [
+                    'testbundle.testconfig' => [
+                        'config' => [
+                            'value' => 1337,
+                        ],
+                    ],
+                ],
+            ),
+            'testbundle',
+        );
+
+        $actualConfig = $config->config('testconfig.missing');
+
+        $this->assertNull($actualConfig);
+    }
+
+    public function testGetConfigForNotExistingRootConfig(): void
+    {
+        $config = new ConfigurationProvider(
+            new ParameterBag(
+                [
+                    'other_config.testconfig' => [
+                        'config' => [
+                            'value' => 1337,
+                        ],
+                    ],
+                ],
+            ),
+            'bundle_config',
+        );
+
+        $actualConfig = $config->config('bundle_config.config.value');
+
+        $this->assertNull($actualConfig);
+    }
 }
