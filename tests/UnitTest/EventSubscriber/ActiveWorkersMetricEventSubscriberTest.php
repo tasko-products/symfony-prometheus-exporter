@@ -51,7 +51,17 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
 
         $this->subscriber = new ActiveWorkersMetricEventSubscriber(
             $this->registry,
-            new ConfigurationProvider(new ParameterBag()),
+            new ConfigurationProvider(
+                new ParameterBag(
+                    [
+                        'prometheus_metrics.event_subscribers' => [
+                            'active_workers' => [
+                                'enabled' => true,
+                            ],
+                        ],
+                    ],
+                ),
+            ),
         );
     }
 

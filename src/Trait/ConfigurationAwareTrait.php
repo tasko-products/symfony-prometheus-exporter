@@ -52,4 +52,15 @@ trait ConfigurationAwareTrait
 
         return $config;
     }
+
+    private function maybeBoolConfig(?string $path): ?bool
+    {
+        $config = $this->config($path);
+
+        if (!is_bool($config)) {
+            return null;
+        }
+
+        return $config;
+    }
 }

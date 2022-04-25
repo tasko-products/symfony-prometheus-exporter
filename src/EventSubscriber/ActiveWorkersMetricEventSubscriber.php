@@ -25,6 +25,7 @@ class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
     use ConfigurationAwareTrait;
 
     private RegistryInterface $registry;
+    private bool $enabled = false;
     private string $messengerNamespace = '';
     private string $activeWorkersMetricName = '';
     private string $helpText = '';
@@ -41,6 +42,7 @@ class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
         $this->configurationProvider = $configurationProvider;
         $this->configurationPrefix = 'event_subscribers.active_workers';
 
+        $this->enabled = $this->maybeBoolConfig('enabled') ?? false;
         $this->messengerNamespace = $this->maybeStrConfig('namespace') ?? 'messenger_events';
         $this->activeWorkersMetricName = $this->maybeStrConfig('metric_name') ?? 'active_workers';
         $this->helpText = $this->maybeStrConfig('help_text') ?? 'Active Workers';
@@ -63,6 +65,10 @@ class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
 
     public function onWorkerStarted(WorkerStartedEvent $event): void
     {
+        if (!$this->enabled) {
+            return;
+        }
+
         $data = $event->getWorker()->getMetadata();
 
         $this->activeWorkersGauge()->inc(
@@ -72,6 +78,10 @@ class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
 
     public function onWorkerStopped(WorkerStoppedEvent $event): void
     {
+        if (!$this->enabled) {
+            return;
+        }
+
         $data = $event->getWorker()->getMetadata();
 
         $this->activeWorkersGauge()->dec(
