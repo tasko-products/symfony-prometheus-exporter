@@ -18,6 +18,7 @@ use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
 use Symfony\Component\Messenger\Worker;
 use Symfony\Component\Messenger\WorkerMetadata;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProvider;
 use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\ActiveWorkersMetricEventSubscriber;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
 
@@ -49,7 +50,7 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
 
         $this->subscriber = new ActiveWorkersMetricEventSubscriber(
             $this->registry,
-            new ParameterBag(),
+            new ConfigurationProvider(new ParameterBag()),
         );
     }
 
@@ -104,21 +105,23 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
     {
         $this->subscriber = new ActiveWorkersMetricEventSubscriber(
             $this->registry,
-            new ParameterBag(
-                [
-                    'prometheus_metrics.event_subscribers' => [
-                        'active_workers' => [
-                            'enabled' => true,
-                            'namespace' => 'test_namespace',
-                            'metric_name' => 'test_metric',
-                            'help_text' => 'test help text',
-                            'labels' => [
-                                'queue_names' => 'test_queue_names',
-                                'transport_names' => 'test_transport_names',
+            new ConfigurationProvider(
+                new ParameterBag(
+                    [
+                        'prometheus_metrics.event_subscribers' => [
+                            'active_workers' => [
+                                'enabled' => true,
+                                'namespace' => 'test_namespace',
+                                'metric_name' => 'test_metric',
+                                'help_text' => 'test help text',
+                                'labels' => [
+                                    'queue_names' => 'test_queue_names',
+                                    'transport_names' => 'test_transport_names',
+                                ],
                             ],
                         ],
                     ],
-                ],
+                ),
             ),
         );
 
@@ -126,8 +129,6 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
         $this->subscriber->onWorkerStopped(new WorkerStoppedEvent($this->worker));
 
         $gauge = $this->registry->getGauge('test_namespace', 'test_metric');
-        $metrics = $this->registry->getMetricFamilySamples();
-        $samples = $metrics[1]->getSamples();
 
         $this->assertEquals('test_namespace_test_metric', $gauge->getName());
         $this->assertEquals(

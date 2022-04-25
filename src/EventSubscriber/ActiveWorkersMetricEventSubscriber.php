@@ -13,14 +13,17 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber;
 
 use Prometheus\Gauge;
 use Prometheus\RegistryInterface;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
 use Symfony\Component\Messenger\WorkerMetadata;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\ConfigurationAwareTrait;
 
 class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
 {
+    use ConfigurationAwareTrait;
+
     private RegistryInterface $registry;
     private string $messengerNamespace = '';
     private string $activeWorkersMetricName = '';
@@ -32,23 +35,16 @@ class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
 
     public function __construct(
         RegistryInterface $registry,
-        ParameterBagInterface $parameterBag,
+        ConfigurationProviderInterface $configurationProvider,
     ) {
         $this->registry = $registry;
+        $this->configurationProvider = $configurationProvider;
+        $this->configurationPrefix = 'event_subscribers.active_workers';
 
-        $pbKey = 'prometheus_metrics.event_subscribers';
-
-        /**
-         * @var array $subscriberConfig
-         */
-        $subscriberConfig = $parameterBag->has($pbKey)
-            ? $parameterBag->get($pbKey)['active_workers']
-            : [];
-
-        $this->messengerNamespace = $subscriberConfig['namespace'] ?? 'messenger_events';
-        $this->activeWorkersMetricName = $subscriberConfig['metric_name'] ?? 'active_workers';
-        $this->helpText = $subscriberConfig['help_text'] ?? 'Active Workers';
-        $this->labels = $subscriberConfig['labels'] ?? [
+        $this->messengerNamespace = $this->maybeStrConfig('namespace') ?? 'messenger_events';
+        $this->activeWorkersMetricName = $this->maybeStrConfig('metric_name') ?? 'active_workers';
+        $this->helpText = $this->maybeStrConfig('help_text') ?? 'Active Workers';
+        $this->labels = $this->maybeArrayConfig('labels') ?? [
             'queue_names' => 'queue_names',
             'transport_names' => 'transport_names',
         ];
