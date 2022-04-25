@@ -64,4 +64,27 @@ class ConfigurationProviderTest extends TestCase
 
         $this->assertNull($actualConfig);
     }
+
+    public function testGetIntegerValueByConfigPath(): void
+    {
+        $config = new ConfigurationProvider(
+            new ParameterBag(
+                [
+                    'testbundle.testconfig' => [
+                        'config' => [
+                            'value' => 1337,
+                        ],
+                    ],
+                ],
+            ),
+            'testbundle',
+        );
+
+        $actualConfig = $config->config('testconfig.config.value');
+
+        $this->assertNotNull($actualConfig);
+
+        $expectedValue = 1337;
+        $this->assertEquals($expectedValue, $actualConfig);
+    }
 }
