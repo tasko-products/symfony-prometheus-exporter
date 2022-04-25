@@ -25,5 +25,5 @@ interface ConfigurationProviderInterface
      *
      * @return array|bool|string|int|float|\UnitEnum Otherwise, the value found under the specified path is returned.
      */
-    public function config(?string $path = null): array|bool|string|int|float|\UnitEnum|null;
+    public function get(?string $path = null): array|bool|string|int|float|\UnitEnum|null;
 }

@@ -36,7 +36,7 @@ class ConfigurationProviderTest extends TestCase
             ),
         );
 
-        $actualConfig = $config->config();
+        $actualConfig = $config->get();
 
         $this->assertIsArray($actualConfig);
         $this->assertEquals(
@@ -60,7 +60,7 @@ class ConfigurationProviderTest extends TestCase
     {
         $config = new ConfigurationProvider(new ParameterBag());
 
-        $actualConfig = $config->config();
+        $actualConfig = $config->get();
 
         $this->assertNull($actualConfig);
     }
@@ -80,7 +80,7 @@ class ConfigurationProviderTest extends TestCase
             'testbundle',
         );
 
-        $actualConfig = $config->config('testconfig.config.value');
+        $actualConfig = $config->get('testconfig.config.value');
 
         $this->assertNotNull($actualConfig);
 
@@ -103,7 +103,7 @@ class ConfigurationProviderTest extends TestCase
             'testbundle',
         );
 
-        $actualConfig = $config->config('testconfig.missing');
+        $actualConfig = $config->get('testconfig.missing');
 
         $this->assertNull($actualConfig);
     }
@@ -123,7 +123,7 @@ class ConfigurationProviderTest extends TestCase
             'bundle_config',
         );
 
-        $actualConfig = $config->config('bundle_config.config.value');
+        $actualConfig = $config->get('bundle_config.config.value');
 
         $this->assertNull($actualConfig);
     }

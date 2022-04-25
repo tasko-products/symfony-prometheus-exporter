@@ -24,7 +24,7 @@ class ConfigurationProvider implements ConfigurationProviderInterface
     /**
      * @inheritDoc
      */
-    public function config(?string $path = null): array|bool|string|int|float|\UnitEnum|null
+    public function get(?string $path = null): array|bool|string|int|float|\UnitEnum|null
     {
         if (count($this->parameterBag->all()) === 0) {
             return null;
