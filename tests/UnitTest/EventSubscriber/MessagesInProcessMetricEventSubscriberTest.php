@@ -15,12 +15,14 @@ use Exception;
 use PHPUnit\Framework\TestCase;
 use Prometheus\Exception\MetricNotFoundException;
 use Prometheus\RegistryInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProvider;
 use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInProcessMetricEventSubscriber;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Fixture\FooBarMessage;
@@ -36,7 +38,10 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
     protected function setUp(): void
     {
         $this->registry = PrometheusCollectorRegistryFactory::create();
-        $this->subscriber = new MessagesInProcessMetricEventSubscriber($this->registry);
+        $this->subscriber = new MessagesInProcessMetricEventSubscriber(
+            $this->registry,
+            new ConfigurationProvider(new ParameterBag()),
+        );
     }
 
     public function testRequiredMessagesInProcessEventsSubscribed(): void
@@ -249,5 +254,48 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         $expectedMetricGauge = 0;
 
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
+
+    public function testConfigureSubscriberViaConfiguration(): void
+    {
+        $this->subscriber = new MessagesInProcessMetricEventSubscriber(
+            $this->registry,
+            new ConfigurationProvider(
+                new ParameterBag(
+                    [
+                        'prometheus_metrics.event_subscribers' => [
+                            'messages_in_process' => [
+                                'enabled' => true,
+                                'namespace' => 'test_namespace',
+                                'metric_name' => 'test_metric',
+                                'help_text' => 'test help text',
+                                'labels' => [
+                                    'queue_names' => 'test_queue_names',
+                                    'transport_names' => 'test_transport_names',
+                                ],
+                            ],
+                        ],
+                    ],
+                ),
+            ),
+        );
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent(
+                new Envelope(new FooBarMessage()),
+                'foobar_receiver',
+            ),
+        );
+
+        $gauge = $this->registry->getGauge('test_namespace', 'test_metric');
+
+        $this->assertEquals('test_namespace_test_metric', $gauge->getName());
+        $this->assertEquals(
+            [
+                'test_queue_names',
+                'test_transport_names'
+            ],
+            $gauge->getLabelNames()
+        );
     }
 }

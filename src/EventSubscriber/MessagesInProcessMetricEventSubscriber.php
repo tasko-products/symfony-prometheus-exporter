@@ -18,22 +18,33 @@ use Symfony\Component\Messenger\Event\AbstractWorkerMessageEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
 class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
 {
     use EnvelopeMethodesTrait;
 
+    private RegistryInterface $registry;
+    private bool $enabled = false;
+    private string $namespace = '';
+    private string $metricName = '';
+    private string $helpText = '';
     /**
-     * @param string[] $labels
+     * @var string[]
      */
+    private array $labels = [];
+
     public function __construct(
-        private RegistryInterface $registry,
-        private string $messengerNamespace = 'messenger_events',
-        private string $messagesInProcessMetricName = 'messages_in_process',
-        private string $helpText = 'Messages In Process',
-        private array  $labels = ['message_path', 'message_class', 'receiver', 'bus'],
+        RegistryInterface $registry,
+        ConfigurationProviderInterface $configurationProvider,
     ) {
+        $this->registry = $registry;
+        $this->enabled = false;
+        $this->namespace = 'messenger_events';
+        $this->metricName = 'messages_in_process';
+        $this->helpText = 'Messages In Process';
+        $this->labels = ['message_path', 'message_class', 'receiver', 'bus'];
     }
 
     /**
@@ -79,8 +90,8 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
     private function messagesInProcessGauge(): Gauge
     {
         return $this->registry->getOrRegisterGauge(
-            $this->messengerNamespace,
-            $this->messagesInProcessMetricName,
+            $this->namespace,
+            $this->metricName,
             $this->helpText,
             $this->labels,
         );
