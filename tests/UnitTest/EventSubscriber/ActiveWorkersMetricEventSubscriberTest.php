@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\EventSubscriber;
 
 use PHPUnit\Framework\TestCase;
+use Prometheus\Exception\MetricNotFoundException;
 use Prometheus\RegistryInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
@@ -101,7 +102,7 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
     }
 
-    public function testConfigureSubscriberViaParameterBag(): void
+    public function testConfigureSubscriberViaConfiguration(): void
     {
         $this->subscriber = new ActiveWorkersMetricEventSubscriber(
             $this->registry,
@@ -138,5 +139,30 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
             ],
             $gauge->getLabelNames()
         );
+    }
+
+    public function testDisableSubscriberViaConfiguration(): void
+    {
+        $this->expectException(MetricNotFoundException::class);
+
+        $this->subscriber = new ActiveWorkersMetricEventSubscriber(
+            $this->registry,
+            new ConfigurationProvider(
+                new ParameterBag(
+                    [
+                        'prometheus_metrics.event_subscribers' => [
+                            'active_workers' => [
+                                'enabled' => false,
+                            ],
+                        ],
+                    ],
+                ),
+            ),
+        );
+
+        $this->subscriber->onWorkerStarted(new WorkerStartedEvent($this->worker));
+        $this->subscriber->onWorkerStopped(new WorkerStoppedEvent($this->worker));
+
+        $this->registry->getGauge('messenger_events', 'active_workers');
     }
 }
