@@ -40,7 +40,17 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         $this->registry = PrometheusCollectorRegistryFactory::create();
         $this->subscriber = new MessagesInProcessMetricEventSubscriber(
             $this->registry,
-            new ConfigurationProvider(new ParameterBag()),
+            new ConfigurationProvider(
+                new ParameterBag(
+                    [
+                        'prometheus_metrics.event_subscribers' => [
+                            'messages_in_process' => [
+                                'enabled' => true,
+                            ],
+                        ],
+                    ],
+                ),
+            ),
         );
     }
 

@@ -71,7 +71,7 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
 
     public function onWorkerMessageReceived(WorkerMessageReceivedEvent $event): void
     {
-        if ($this->isRedelivered($event->getEnvelope())) {
+        if (!$this->enabled || $this->isRedelivered($event->getEnvelope())) {
             return;
         }
 
@@ -94,6 +94,10 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
 
     private function decMetric(WorkerMessageHandledEvent|WorkerMessageFailedEvent $event): void
     {
+        if (!$this->enabled) {
+            return;
+        }
+
         $this->messagesInProcessGauge()->dec($this->messagesInProcessLabelValues($event));
     }
 
