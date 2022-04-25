@@ -35,36 +35,34 @@ class ConfigurationProvider implements ConfigurationProviderInterface
         }
 
         $splittedPath = explode('.', $path);
-
-        /**
-         * @var array $configNode
-         */
-        $configNode = $this->parameterBag->get($this->configRoot . '.' . $splittedPath[0]);
-
-        /**
-         * @var array|bool|string|int|float|\UnitEnum|null $currentNode
-         */
-        $currentNode = $configNode;
+        $currentNode = $this->parameterBag->get($this->configRoot . '.' . $splittedPath[0]);
 
         for ($i = 1; $i < count($splittedPath); $i++) {
             if (!is_array($currentNode)) {
                 break;
             }
 
-            $keyHaystack = array_keys($currentNode);
-
-            /**
-             * @var int|string|bool $result
-             */
-            $result = array_search($splittedPath[$i], $keyHaystack);
-
-            if ($result === false) {
-                return null;
-            }
-
-            $currentNode = $currentNode[$keyHaystack[$result]];
+            $currentNode = $this->tryFindNextNodeForPath($currentNode, $splittedPath[$i]);
         }
 
         return $currentNode;
+    }
+
+    private function tryFindNextNodeForPath(
+        array $currentNode,
+        string $needle,
+    ): array|bool|string|int|float|\UnitEnum|null {
+        $haystack = array_keys($currentNode);
+
+        /**
+         * @var int|bool $result
+         */
+        $result = array_search($needle, $haystack);
+
+        if ($result === false) {
+            return null;
+        }
+
+        return $currentNode[$haystack[$result]];
     }
 }
