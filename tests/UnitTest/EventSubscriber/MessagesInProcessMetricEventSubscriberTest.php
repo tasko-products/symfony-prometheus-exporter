@@ -270,8 +270,10 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
                                 'metric_name' => 'test_metric',
                                 'help_text' => 'test help text',
                                 'labels' => [
-                                    'queue_names' => 'test_queue_names',
-                                    'transport_names' => 'test_transport_names',
+                                    'message_path' => 'test_message_path',
+                                    'message_class' => 'test_message_class',
+                                    'receiver' => 'test_receiver',
+                                    'bus' => 'test_bus',
                                 ],
                             ],
                         ],
@@ -292,8 +294,10 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         $this->assertEquals('test_namespace_test_metric', $gauge->getName());
         $this->assertEquals(
             [
-                'test_queue_names',
-                'test_transport_names'
+                'test_message_path',
+                'test_message_class',
+                'test_receiver',
+                'test_bus',
             ],
             $gauge->getLabelNames()
         );
