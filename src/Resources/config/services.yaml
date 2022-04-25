@@ -1,10 +1,17 @@
 services:
 
+  # Configuration
+  tasko_products_symfony_prometheus_exporter.configuration:
+    class: TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProvider'
+    arguments:
+      $parameterBag: '@parameter_bag'
+
   # Event Subscribers
   tasko_products_symfony_prometheus_exporter.active_workers_metric_subscriber:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\ActiveWorkersMetricEventSubscriber
     arguments:
       $registry: '@Prometheus\RegistryInterface'
+      $configurationProvider: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
     tags:
       - { name: kernel.event_subscriber }
 
@@ -37,6 +44,7 @@ services:
   ## Aliases
   TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware: '@tasko_products_symfony_prometheus_exporter.messenger_event_middleware'
   TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware: '@tasko_products_symfony_prometheus_exporter.retry_messenger_event_middleware'
+  TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface: '@tasko_products_symfony_prometheus_exporter.configuration'
 
   # Prometheus Aliases
 
