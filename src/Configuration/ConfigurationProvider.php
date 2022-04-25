@@ -35,13 +35,7 @@ class ConfigurationProvider implements ConfigurationProviderInterface
         }
 
         $splittedPath = explode('.', $path);
-        $configQuery = $this->configRoot . '.' . $splittedPath[0];
-
-        if (!$this->parameterBag->has($configQuery)) {
-            return null;
-        }
-
-        $currentNode = $this->parameterBag->get($configQuery);
+        $currentNode = $this->queryRootConfig($splittedPath[0]);
 
         for ($i = 1; $i < count($splittedPath); $i++) {
             if (!is_array($currentNode)) {
@@ -52,6 +46,17 @@ class ConfigurationProvider implements ConfigurationProviderInterface
         }
 
         return $currentNode;
+    }
+
+    private function queryRootConfig(string $needle): array|bool|string|int|float|\UnitEnum|null
+    {
+        $configQuery = $this->configRoot . '.' . $needle;
+
+        if (!$this->parameterBag->has($configQuery)) {
+            return null;
+        }
+
+        return $this->parameterBag->get($configQuery);
     }
 
     private function tryFindNextNodeForPath(
