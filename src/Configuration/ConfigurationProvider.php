@@ -30,6 +30,41 @@ class ConfigurationProvider implements ConfigurationProviderInterface
             return null;
         }
 
-        return $this->parameterBag->all();
+        if ($path === null) {
+            return $this->parameterBag->all();
+        }
+
+        $splittedPath = explode('.', $path);
+
+        /**
+         * @var array $configNode
+         */
+        $configNode = $this->parameterBag->get($this->configRoot . '.' . $splittedPath[0]);
+
+        /**
+         * @var array|bool|string|int|float|\UnitEnum|null $currentNode
+         */
+        $currentNode = $configNode;
+
+        for ($i = 1; $i < count($splittedPath); $i++) {
+            if (!is_array($currentNode)) {
+                break;
+            }
+
+            $keyHaystack = array_keys($currentNode);
+
+            /**
+             * @var int|string|bool $result
+             */
+            $result = array_search($splittedPath[$i], $keyHaystack);
+
+            if ($result === false) {
+                return null;
+            }
+
+            $currentNode = $currentNode[$keyHaystack[$result]];
+        }
+
+        return $currentNode;
     }
 }
