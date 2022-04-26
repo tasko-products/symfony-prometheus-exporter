@@ -17,11 +17,13 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\ConfigurationAwareTrait;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
 class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterface
 {
     use EnvelopeMethodesTrait;
+    use ConfigurationAwareTrait;
 
     private RegistryInterface $registry;
     private bool $enabled = false;
@@ -38,12 +40,14 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
         ConfigurationProviderInterface $configurationProvider,
     ) {
         $this->registry = $registry;
+        $this->configurationProvider = $configurationProvider;
+        $this->configurationPrefix = 'event_subscribers.messages_in_transport';
 
-        $this->enabled = false;
-        $this->namespace = 'messenger_events';
-        $this->metricName = 'messages_in_transport';
-        $this->helpText = 'Messages In Transport';
-        $this->labels = [
+        $this->enabled = $this->maybeBoolConfig('enabled') ?? false;
+        $this->namespace = $this->maybeStrConfig('namespace') ?? 'messenger_events';
+        $this->metricName = $this->maybeStrConfig('metric_name') ?? 'messages_in_transport';
+        $this->helpText = $this->maybeStrConfig('help_text') ?? 'Messages In Transport';
+        $this->labels = $this->maybeArrayConfig('labels') ?? [
             'message_path' => 'message_path',
             'message_class' => 'message_class',
             'bus' => 'bus',

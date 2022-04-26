@@ -179,7 +179,7 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
                 new ParameterBag(
                     [
                         'prometheus_metrics.event_subscribers' => [
-                            'messages_in_process' => [
+                            'messages_in_transport' => [
                                 'enabled' => true,
                                 'namespace' => 'test_namespace',
                                 'metric_name' => 'test_metric',
@@ -187,7 +187,6 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
                                 'labels' => [
                                     'message_path' => 'test_message_path',
                                     'message_class' => 'test_message_class',
-                                    'receiver' => 'test_receiver',
                                     'bus' => 'test_bus',
                                 ],
                             ],
@@ -213,7 +212,6 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
             [
                 'test_message_path',
                 'test_message_class',
-                'test_receiver',
                 'test_bus',
             ],
             $gauge->getLabelNames()
