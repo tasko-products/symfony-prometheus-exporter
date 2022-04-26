@@ -237,8 +237,14 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
             ),
         );
 
+        $envelope = new Envelope(new FooBarMessage());
+
         $this->subscriber->onSendMessageToTransports(
-            new SendMessageToTransportsEvent(new Envelope(new FooBarMessage())),
+            new SendMessageToTransportsEvent($envelope),
+        );
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent($envelope->with(new RedeliveryStamp(1)), ''),
         );
 
         $this->registry->getGauge('messenger_events', 'messages_in_transport');

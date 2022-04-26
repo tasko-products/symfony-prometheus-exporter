@@ -313,7 +313,7 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
         );
     }
 
-    public function testDisableSubscriberViaConfiguration(): void
+    public function testDisableHappyPathEventHandlersViaConfiguration(): void
     {
         $this->expectException(MetricNotFoundException::class);
 
@@ -332,11 +332,48 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
             ),
         );
 
+        $envelope = new Envelope(new FooBarMessage());
+        $receiver = 'foobar_receiver';
+
         $this->subscriber->onWorkerMessageReceived(
-            new WorkerMessageReceivedEvent(
-                new Envelope(new FooBarMessage()),
-                'foobar_receiver',
+            new WorkerMessageReceivedEvent($envelope, $receiver),
+        );
+
+        $this->subscriber->onWorkerMessageHandled(
+            new WorkerMessageHandledEvent($envelope, $receiver),
+        );
+
+        $this->registry->getGauge('messenger_events', 'messages_in_process');
+    }
+
+    public function testDisableFailedPathEventHandlersViaConfiguration(): void
+    {
+        $this->expectException(MetricNotFoundException::class);
+
+        $this->subscriber = new MessagesInProcessMetricEventSubscriber(
+            $this->registry,
+            new ConfigurationProvider(
+                new ParameterBag(
+                    [
+                        'prometheus_metrics.event_subscribers' => [
+                            'messages_in_process' => [
+                                'enabled' => false,
+                            ],
+                        ],
+                    ],
+                ),
             ),
+        );
+
+        $envelope = new Envelope(new FooBarMessage());
+        $receiver = 'foobar_receiver';
+
+        $this->subscriber->onWorkerMessageReceived(
+            new WorkerMessageReceivedEvent($envelope, $receiver),
+        );
+
+        $this->subscriber->onWorkerMessageFailed(
+            new WorkerMessageFailedEvent($envelope, $receiver, new Exception('boom!')),
         );
 
         $this->registry->getGauge('messenger_events', 'messages_in_process');
