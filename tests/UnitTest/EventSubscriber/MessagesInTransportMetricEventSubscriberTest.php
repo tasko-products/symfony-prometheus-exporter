@@ -217,4 +217,30 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
             $gauge->getLabelNames()
         );
     }
+
+    public function testDisableSubscriberViaConfiguration(): void
+    {
+        $this->expectException(MetricNotFoundException::class);
+
+        $this->subscriber = new MessagesInTransportMetricEventSubscriber(
+            $this->registry,
+            new ConfigurationProvider(
+                new ParameterBag(
+                    [
+                        'prometheus_metrics.event_subscribers' => [
+                            'messages_in_transport' => [
+                                'enabled' => false,
+                            ],
+                        ],
+                    ],
+                ),
+            ),
+        );
+
+        $this->subscriber->onSendMessageToTransports(
+            new SendMessageToTransportsEvent(new Envelope(new FooBarMessage())),
+        );
+
+        $this->registry->getGauge('messenger_events', 'messages_in_transport');
+    }
 }
