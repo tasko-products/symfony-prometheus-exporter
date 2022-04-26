@@ -16,24 +16,47 @@ use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\ConfigurationAwareTrait;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
 class MessengerEventMiddleware implements MiddlewareInterface
 {
     use EnvelopeMethodesTrait;
+    use ConfigurationAwareTrait;
 
+    private RegistryInterface $registry;
+    private string $metricName = '';
+    private string $helpText = '';
     /**
-     * @param string[] $labels
-     * @param string[] $errorLabels
+     * @var string[]
      */
+    private array $labels = [];
+    private string $errorHelpText = '';
+    /**
+     * @var string[]
+     */
+    private array $errorLabels = [];
+
     public function __construct(
-        private RegistryInterface $registry,
-        private string $metricName = 'message',
-        private string $helpText = 'Executed Messages',
-        private array  $labels = ['message', 'label'],
-        private string $errorHelpText = 'Failed Messages',
-        private array  $errorLabels = ['message', 'label'],
+        RegistryInterface $registry,
+        ConfigurationProviderInterface $configurationProvider,
     ) {
+        $this->registry = $registry;
+        $this->configurationProvider = $configurationProvider;
+        $this->configurationPrefix = 'middlewares.event_middleware';
+
+        $this->metricName = $this->maybeStrConfig('metric_name') ?? 'message';
+        $this->helpText = $this->maybeStrConfig('help_text') ?? 'Executed Messages';
+        $this->labels = $this->maybeArrayConfig('labels') ?? [
+            'message' => 'message',
+            'label' => 'label'
+        ];
+        $this->errorHelpText = $this->maybeStrConfig('error_help_text') ?? 'Failed Messages';
+        $this->errorLabels = $this->maybeArrayConfig('error_labels') ?? [
+            'message' => 'message',
+            'label' => 'label'
+        ];
     }
 
     /**
@@ -47,14 +70,14 @@ class MessengerEventMiddleware implements MiddlewareInterface
             $busName,
             $this->metricName,
             $this->helpText,
-            $this->labels
+            $this->eventMiddlewareLabels(),
         );
 
         $errCounter = $this->getErrorCounter(
             $busName,
             $this->metricName,
             $this->errorHelpText,
-            $this->errorLabels
+            $this->eventMiddlewareErrorLabels(),
         );
 
         $messageLabels = [
@@ -74,6 +97,28 @@ class MessengerEventMiddleware implements MiddlewareInterface
         }
 
         return $envelope;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function eventMiddlewareLabels(): array
+    {
+        return [
+            $this->labels['message'],
+            $this->labels['label'],
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
+    private function eventMiddlewareErrorLabels(): array
+    {
+        return [
+            $this->errorLabels['message'],
+            $this->errorLabels['label'],
+        ];
     }
 
     /**

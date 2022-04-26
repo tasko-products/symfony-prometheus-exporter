@@ -13,7 +13,9 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Middlewar
 
 use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\Messenger\Middleware\AddBusNameStampMiddleware;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProvider;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\MessageBusFactory;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
@@ -26,7 +28,7 @@ class MessengerEventMiddlewareTest extends TestCase
     private RegistryInterface $registry;
 
     private const BUS_NAME = 'message_bus';
-    private const METRIC_NAME = 'messenger';
+    private const METRIC_NAME = 'message';
     private const ERROR_METRIC_NAME = self::METRIC_NAME . '_error';
 
     protected function setUp(): void
@@ -41,7 +43,10 @@ class MessengerEventMiddlewareTest extends TestCase
         $messageBus = MessageBusFactory::create(
             $givenRouting,
             new AddBusNameStampMiddleware(self::BUS_NAME),
-            new MessengerEventMiddleware($this->registry, self::METRIC_NAME)
+            new MessengerEventMiddleware(
+                $this->registry,
+                new ConfigurationProvider(new ParameterBag()),
+            ),
         );
 
         $messageBus->dispatch(new FooBarMessage());
@@ -67,7 +72,10 @@ class MessengerEventMiddlewareTest extends TestCase
         $messageBus = MessageBusFactory::create(
             $givenRouting,
             new AddBusNameStampMiddleware(self::BUS_NAME),
-            new MessengerEventMiddleware($this->registry, self::METRIC_NAME)
+            new MessengerEventMiddleware(
+                $this->registry,
+                new ConfigurationProvider(new ParameterBag()),
+            ),
         );
 
         $messageBus->dispatch(new FooBarMessage());
@@ -93,7 +101,10 @@ class MessengerEventMiddlewareTest extends TestCase
         $messageBus = MessageBusFactory::create(
             $givenRouting,
             new AddBusNameStampMiddleware(self::BUS_NAME),
-            new MessengerEventMiddleware($this->registry, self::METRIC_NAME)
+            new MessengerEventMiddleware(
+                $this->registry,
+                new ConfigurationProvider(new ParameterBag()),
+            ),
         );
 
         try {
@@ -120,15 +131,15 @@ class MessengerEventMiddlewareTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         $givenInvalidBusName = 'invalid#message#bus';
-        $givenValidMetricName = 'valid_metric_name';
+        $givenConfiguration = new ConfigurationProvider(new ParameterBag());
 
         $messageBus = MessageBusFactory::create(
             [FooBarMessage::class => [new FooBarMessageHandler()]],
             new AddBusNameStampMiddleware($givenInvalidBusName),
             new MessengerEventMiddleware(
                 $this->registry,
-                $givenValidMetricName
-            )
+                $givenConfiguration,
+            ),
         );
 
         $messageBus->dispatch(new FooBarMessage());
@@ -139,17 +150,123 @@ class MessengerEventMiddlewareTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         $givenValidBusName = 'valid_message_bus';
-        $givenInvalidMetricName = 'invalid.metric.name';
+        $givenConfiguration = new ConfigurationProvider(
+            new ParameterBag(
+                [
+                    'prometheus_metrics.middlewares' => [
+                        'event_middleware' => [
+                            'metric_name' => 'invalid.metric.name',
+                        ],
+                    ],
+                ],
+            ),
+        );
 
         $messageBus = MessageBusFactory::create(
             [FooBarMessage::class => [new FooBarMessageHandler()]],
             new AddBusNameStampMiddleware($givenValidBusName),
             new MessengerEventMiddleware(
                 $this->registry,
-                $givenInvalidMetricName
+                $givenConfiguration,
+            ),
+        );
+
+        $messageBus->dispatch(new FooBarMessage());
+    }
+
+    public function testConfigureMiddlewareViaConfiguration(): void
+    {
+        $givenRouting = [FooBarMessage::class => [new FooBarMessageHandler()]];
+
+        $messageBus = MessageBusFactory::create(
+            $givenRouting,
+            new AddBusNameStampMiddleware(self::BUS_NAME),
+            new MessengerEventMiddleware(
+                $this->registry,
+                new ConfigurationProvider(
+                    new ParameterBag(
+                        [
+                            'prometheus_metrics.middlewares' => [
+                                'event_middleware' => [
+                                    'metric_name' => 'test_metric',
+                                    'help_text' => 'test help text',
+                                    'labels' => [
+                                        'message' => 'test_message',
+                                        'label' => 'test_label',
+                                    ],
+                                    'error_help_text' => 'test error help text',
+                                    'error_labels' => [
+                                        'message' => 'test_message',
+                                        'label' => 'test_label',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ),
+                ),
             )
         );
 
         $messageBus->dispatch(new FooBarMessage());
+
+        $counter = $this->registry->getCounter(self::BUS_NAME, 'test_metric');
+
+        $this->assertEquals(self::BUS_NAME . '_test_metric', $counter->getName());
+        $this->assertEquals(['test_message', 'test_label'], $counter->getLabelNames());
+
+
+        $errorCounter = $this->registry->getCounter(self::BUS_NAME, 'test_metric_error');
+
+        $this->assertEquals(self::BUS_NAME . '_test_metric_error', $errorCounter->getName());
+        $this->assertEquals(['test_message', 'test_label'], $errorCounter->getLabelNames());
+    }
+
+    public function testConfigureErrorMiddlewareViaConfiguration(): void
+    {
+        $givenRouting = [FooBarMessage::class => [new FooBarMessageHandlerWithException()]];
+
+        $messageBus = MessageBusFactory::create(
+            $givenRouting,
+            new AddBusNameStampMiddleware(self::BUS_NAME),
+            new MessengerEventMiddleware(
+                $this->registry,
+                new ConfigurationProvider(
+                    new ParameterBag(
+                        [
+                            'prometheus_metrics.middlewares' => [
+                                'event_middleware' => [
+                                    'metric_name' => 'test_metric',
+                                    'help_text' => 'test help text',
+                                    'labels' => [
+                                        'message' => 'test_message',
+                                        'label' => 'test_label',
+                                    ],
+                                    'error_help_text' => 'test error help text',
+                                    'error_labels' => [
+                                        'message' => 'test_message',
+                                        'label' => 'test_label',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ),
+                ),
+            )
+        );
+
+        try {
+            $messageBus->dispatch(new FooBarMessage());
+        } catch (\Throwable $exception) {
+        }
+
+        $counter = $this->registry->getCounter(self::BUS_NAME, 'test_metric');
+
+        $this->assertEquals(self::BUS_NAME . '_test_metric', $counter->getName());
+        $this->assertEquals(['test_message', 'test_label'], $counter->getLabelNames());
+
+        $errorCounter = $this->registry->getCounter(self::BUS_NAME, 'test_metric_error');
+
+        $this->assertEquals(self::BUS_NAME . '_test_metric_error', $errorCounter->getName());
+        $this->assertEquals(['test_message', 'test_label'], $errorCounter->getLabelNames());
     }
 }
