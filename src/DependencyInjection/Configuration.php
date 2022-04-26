@@ -25,13 +25,16 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('prometheus_metrics');
-        $rootNode = $treeBuilder->getRootNode();
 
-        if (!$rootNode instanceof ArrayNodeDefinition) {
+        /**
+         * just a phpstan thing – error because of getRootNode's NodeDefinition response type:
+         * "Call to an undefined method Symfony\Component\Config\Definition\Builder\NodeDefinition::children()"
+         */
+        if (!$treeBuilder->getRootNode() instanceof ArrayNodeDefinition) {
             throw new \Exception('The root node must be of type ' . ArrayNodeDefinition::class);
         }
 
-        return $rootNode->children()
+        $treeBuilder->getRootNode()->children()
                             ->arrayNode('event_subscribers')
                                 ->children()
                                     ->arrayNode('active_workers')
@@ -119,5 +122,7 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                         ->end();
+
+        return $treeBuilder;
     }
 }
