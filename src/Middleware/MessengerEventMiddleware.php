@@ -50,12 +50,12 @@ class MessengerEventMiddleware implements MiddlewareInterface
         $this->helpText = $this->maybeStrConfig('help_text') ?? 'Executed Messages';
         $this->labels = $this->maybeArrayConfig('labels') ?? [
             'message' => 'message',
-            'label' => 'label'
+            'label' => 'label',
         ];
         $this->errorHelpText = $this->maybeStrConfig('error_help_text') ?? 'Failed Messages';
         $this->errorLabels = $this->maybeArrayConfig('error_labels') ?? [
             'message' => 'message',
-            'label' => 'label'
+            'label' => 'label',
         ];
     }
 
