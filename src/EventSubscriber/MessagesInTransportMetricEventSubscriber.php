@@ -67,12 +67,16 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
 
     public function onSendMessageToTransports(SendMessageToTransportsEvent $event): void
     {
+        if (!$this->enabled) {
+            return;
+        }
+
         $this->messagesInTransportGauge()->inc($this->messagesInTransportLabelValues($event));
     }
 
     public function onWorkerMessageReceived(WorkerMessageReceivedEvent $event): void
     {
-        if ($this->isRedelivered($event->getEnvelope())) {
+        if (!$this->enabled || $this->isRedelivered($event->getEnvelope())) {
             return;
         }
 
