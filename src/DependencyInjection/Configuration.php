@@ -24,7 +24,7 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder(): TreeBuilder
     {
-        $treeBuilder = new TreeBuilder('prometheus_metrics');
+        $treeBuilder = new TreeBuilder('tasko_products_symfony_prometheus_exporter');
 
         /**
          * just a phpstan thing – error because of getRootNode's NodeDefinition response type:

@@ -1,4 +1,4 @@
-prometheus_metrics:
+tasko_products_symfony_prometheus_exporter:
   event_subscribers:
     active_workers:
       enabled: false
