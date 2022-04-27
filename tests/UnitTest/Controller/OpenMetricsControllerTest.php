@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Controller;
 
 use PHPUnit\Framework\TestCase;
+use Prometheus\RenderTextFormat;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 use Symfony\Component\Messenger\Worker;
@@ -64,7 +65,7 @@ class OpenMetricsControllerTest extends TestCase
 
         $subscriber->onWorkerStarted(new WorkerStartedEvent($worker));
 
-        $controller = new OpenMetricsController($registry);
+        $controller = new OpenMetricsController($registry, new RenderTextFormat());
 
         $metricsResponse = $controller->metrics();
 
