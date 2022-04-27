@@ -2,7 +2,7 @@ services:
 
   # Configuration
   tasko_products_symfony_prometheus_exporter.configuration:
-    class: TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProvider'
+    class: TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProvider
     arguments:
       $parameterBag: '@parameter_bag'
 
