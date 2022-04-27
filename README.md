@@ -118,6 +118,37 @@ framework:
                     - 'TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware'
                     - 'TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware'
 ```
+**To overwrite the default labels and texts:**
+
+Create a new configuration yaml file
+`app/config/packages/prometheus_metrics.yaml`. Add the following configuration and now you can adjust the labels and texts via the following configuration.
+
+```yml
+# app/config/packages/prometheus_metrics.yaml
+
+tasko_products_symfony_prometheus_exporter:
+  middlewares:
+    event_middleware:
+      # enabled by 'app/config/messenger.yaml'
+      metric_name: 'message'
+      help_text: 'Executed Messages'
+      labels:
+        message: 'message'
+        label: 'label'
+      error_help_text: 'Failed Messages'
+      error_labels:
+        message: 'message'
+        label: 'label'
+
+    retry_event_middleware:
+      # enabled by 'app/config/messenger.yaml'
+      metric_name: 'retry_message'
+      help_text: 'Retried Messages'
+      labels:
+        message: 'message'
+        label: 'label'
+        retry: 'retry'
+```
 
 Example for the `MessengerEventMiddleware`:
 ```bash
@@ -142,18 +173,54 @@ message_bus_commands_retry_message{message="App\\Message\\FooBarMessage",label="
 
 ### Enable the messager event subscriber metric collectors (optional)
 
-Register the desired event subscribers as necessary.
+Register the desired event subscribers as necessary. Create a new configuration yaml file
+`app/config/packages/prometheus_metrics.yaml`. Add the following configuration and now you can activate/
+deactivate the event subscribers and adjust the labels and texts via the following configuration.
 
-> todo: enable/ disable by service config
+```yml
+# app/config/packages/prometheus_metrics.yaml
 
-Example for the `ActiveWorkersMetricEventSubscriber`:
+tasko_products_symfony_prometheus_exporter:
+  event_subscribers:
+    active_workers:
+      enabled: false
+    #   namespace: 'messenger_events'
+    #   metric_name: 'active_workers'
+    #   help_text: 'Active Workers'
+    #   labels:
+    #     queue_names: 'queue_names'
+    #     transport_names: 'transport_names'
+
+    messages_in_process:
+      enabled: false
+    #   namespace: 'messenger_events'
+    #   metric_name: 'messages_in_process'
+    #   help_text: 'Messages In Process'
+    #   labels:
+    #     message_path: 'message_path'
+    #     message_class: 'message_class'
+    #     receiver: 'receiver'
+    #     bus: 'bus'
+
+    messages_in_transport:
+      enabled: false
+    #   namespace: 'messenger_events'
+    #   metric_name: 'messages_in_transport'
+    #   help_text: 'Messages In Transport'
+    #   labels:
+    #     message_path: 'message_path'
+    #     message_class: 'message_class'
+    #     bus: 'bus'
+```
+
+Example for the active_workers (`ActiveWorkersMetricEventSubscriber`):
 ```bash
 # HELP messenger_events_active_workers Active Workers
 # TYPE messenger_events_active_workers gauge
 messenger_events_active_workers{queue_names="default_queue, priority_queue",transport_names="async"} 1
 ```
 
-Example for the `MessagesInProcessMetricEventSubscriber`:
+Example for the messages_in_process (`MessagesInProcessMetricEventSubscriber`):
 ```bash
 # HELP messenger_events_messages_in_process Messages In Process
 # TYPE messenger_events_messages_in_process gauge
@@ -161,7 +228,7 @@ messenger_events_messages_in_process{message_path="App\\Message\\FailingFooBarMe
 messenger_events_messages_in_process{message_path="App\\Message\\FooBarMessage",message_class="FooBarMessage",receiver="async",bus="messenger_bus_default"} 0
 ```
 
-Example for the `MessagesInTransportMetricEventSubscriber`:
+Example for the messages_in_transport (`MessagesInTransportMetricEventSubscriber`):
 ```bash
 # HELP messenger_events_messages_in_transport Messages In Transport
 # TYPE messenger_events_messages_in_transport gauge
