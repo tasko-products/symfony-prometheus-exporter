@@ -12,19 +12,21 @@ declare(strict_types=1);
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Controller;
 
 use PHPUnit\Framework\TestCase;
+use Prometheus\RegistryInterface;
 use Prometheus\RendererInterface;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Controller\OpenMetricsController;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
 
 class OpenMetricsControllerTest extends TestCase
 {
-    public function testGetOpenMetricsForActiveWorkers(): void
+    public function testGetOpenMetrics(): void
     {
-        $registry = PrometheusCollectorRegistryFactory::create();
+        $registry = $this->getMockBuilder(RegistryInterface::class)->getMock();
         $renderer = $this->getMockBuilder(RendererInterface::class)->getMock();
 
         $givenMetric = <<<EOD
-        # HELP test_namespace_test_metric test help text
+        # HELP messenger_events_active_workers Active Workers
+        # TYPE messenger_events_active_workers gauge
+        messenger_events_active_workers{queue_names="default_queue, priority_queue",transport_names="async"} 1
         EOD;
 
         $renderer->expects($this->once())
