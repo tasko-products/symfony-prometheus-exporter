@@ -20,6 +20,6 @@ class OpenMetricsController extends AbstractController
     #[Route('/metrics', name: 'open_metrics', methods: ['GET'])]
     public function metrics(): Response
     {
-        return new Response(status: 501);
+        return new Response();
     }
 }
