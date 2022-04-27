@@ -18,12 +18,13 @@ interface ConfigurationProviderInterface
      *
      * @param string $path Specification of the config path, separated with dots. E.g.
      * `prometheus_metrics.event_subscribers.active_workers.namespace`. To get the full bundle
-     * config, just call `config()` without arguments.
+     * config, just call `get()` without arguments.
      *
      * @return null If nothing is found under the specified configuration path, then the function
      * returns null.
      *
-     * @return array|bool|string|int|float|\UnitEnum Otherwise, the value found under the specified path is returned.
+     * @return array|bool|string|int|float|\UnitEnum Otherwise, the value found under the specified
+     * path is returned.
      */
     public function get(?string $path = null): array|bool|string|int|float|\UnitEnum|null;
 }
