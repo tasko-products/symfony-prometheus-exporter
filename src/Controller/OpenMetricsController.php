@@ -15,7 +15,6 @@ use Prometheus\RegistryInterface;
 use Prometheus\RendererInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 
 class OpenMetricsController extends AbstractController
 {
@@ -27,7 +26,6 @@ class OpenMetricsController extends AbstractController
     ) {
     }
 
-    #[Route('/metrics', name: 'open_metrics', methods: ['GET'])]
     public function metrics(): Response
     {
         return new Response(

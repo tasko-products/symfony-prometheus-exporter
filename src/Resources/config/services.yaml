@@ -45,6 +45,14 @@ services:
       $registry: '@Prometheus\RegistryInterface'
       $configurationProvider: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
 
+  # Routes
+  tasko_products_symfony_prometheus_exporter.routes:
+    class: TaskoProducts\SymfonyPrometheusExporterBundle\DependencyInjection\RouteLoader
+    arguments:
+      $configurationProvider: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
+    tags: 
+      - { name: routing.loader }
+
   ## Aliases
   TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware: '@tasko_products_symfony_prometheus_exporter.messenger_event_middleware'
   TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware: '@tasko_products_symfony_prometheus_exporter.retry_messenger_event_middleware'
