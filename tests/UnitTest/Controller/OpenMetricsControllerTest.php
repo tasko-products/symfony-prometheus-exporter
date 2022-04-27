@@ -47,5 +47,9 @@ class OpenMetricsControllerTest extends TestCase
             $givenMetric,
             $content,
         );
+        $this->assertEquals(
+            'text/plain; version=0.0.4',
+            $metricsResponse->headers->get('content-type'),
+        );
     }
 }
