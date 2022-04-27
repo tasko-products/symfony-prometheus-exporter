@@ -75,6 +75,10 @@ return [
 Configuration
 -------------
 
+> Please note that changes to metric names are only valid if they match the following regular expression: **/^[a-zA-Z_:][a-zA-Z0-9_:]*$/**
+> 
+> Validate your name on [regex101.com](https://regex101.com/r/2d8eqk/1)
+
 ### Prometheus Redis configuration (optional)
 
 Add the `Prometheus` Redis configuration to your services. 
