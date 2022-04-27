@@ -19,6 +19,8 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class OpenMetricsController extends AbstractController
 {
+    private const MIME_TYPE = 'text/plain; version=0.0.4';
+
     public function __construct(
         private RegistryInterface $registry,
         private RendererInterface $renderer,
@@ -29,7 +31,10 @@ class OpenMetricsController extends AbstractController
     public function metrics(): Response
     {
         return new Response(
-            $this->renderer->render($this->registry->getMetricFamilySamples()),
+            content: $this->renderer->render($this->registry->getMetricFamilySamples()),
+            headers: [
+                'content-type' => self::MIME_TYPE,
+            ]
         );
     }
 }
