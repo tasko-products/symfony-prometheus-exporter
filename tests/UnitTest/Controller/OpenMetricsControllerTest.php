@@ -12,14 +12,8 @@ declare(strict_types=1);
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Controller;
 
 use PHPUnit\Framework\TestCase;
-use Prometheus\RenderTextFormat;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
-use Symfony\Component\Messenger\Event\WorkerStartedEvent;
-use Symfony\Component\Messenger\Worker;
-use Symfony\Component\Messenger\WorkerMetadata;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProvider;
+use Prometheus\RendererInterface;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Controller\OpenMetricsController;
-use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\ActiveWorkersMetricEventSubscriber;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
 
 class OpenMetricsControllerTest extends TestCase
@@ -27,45 +21,17 @@ class OpenMetricsControllerTest extends TestCase
     public function testGetOpenMetricsForActiveWorkers(): void
     {
         $registry = PrometheusCollectorRegistryFactory::create();
-        $worker = $this->getMockBuilder(Worker::class)
-                       ->disableOriginalConstructor()
-                       ->getMock();
+        $renderer = $this->getMockBuilder(RendererInterface::class)->getMock();
 
-        $worker->expects($this->any())
-               ->method('getMetadata')
-               ->willReturn(new WorkerMetadata([
-                   'transportNames' => ['transport', 'prio_transport'],
-                   'queueNames' => [
-                    'foobar_worker_queue',
-                    'priority_foobar_worker_queue',
-                   ]
-               ]));
+        $givenMetric = <<<EOD
+        # HELP test_namespace_test_metric test help text
+        EOD;
 
-        $subscriber = new ActiveWorkersMetricEventSubscriber(
-            $registry,
-            new ConfigurationProvider(
-                new ParameterBag(
-                    [
-                        'prometheus_metrics.event_subscribers' => [
-                            'active_workers' => [
-                                'enabled' => true,
-                                'namespace' => 'test_namespace',
-                                'metric_name' => 'test_metric',
-                                'help_text' => 'test help text',
-                                'labels' => [
-                                    'queue_names' => 'test_queue_names',
-                                    'transport_names' => 'test_transport_names',
-                                ],
-                            ],
-                        ],
-                    ],
-                ),
-            ),
-        );
+        $renderer->expects($this->once())
+                 ->method('render')
+                 ->willReturn($givenMetric);
 
-        $subscriber->onWorkerStarted(new WorkerStartedEvent($worker));
-
-        $controller = new OpenMetricsController($registry, new RenderTextFormat());
+        $controller = new OpenMetricsController($registry, $renderer);
 
         $metricsResponse = $controller->metrics();
 
@@ -77,8 +43,8 @@ class OpenMetricsControllerTest extends TestCase
         $content = $metricsResponse->getContent();
 
         $this->assertIsString($content);
-        $this->assertStringContainsString(
-            '# HELP test_namespace_test_metric test help text',
+        $this->assertEquals(
+            $givenMetric,
             $content,
         );
     }
