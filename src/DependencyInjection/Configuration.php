@@ -125,7 +125,6 @@ class Configuration implements ConfigurationInterface
                                 ->children()
                                     ->arrayNode('open_metrics')
                                         ->children()
-                                            ->booleanNode('enabled')->end()
                                             ->scalarNode('name')->end()
                                             ->scalarNode('path')->end()
                                             ->scalarNode('controller')->end()

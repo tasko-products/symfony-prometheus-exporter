@@ -75,9 +75,33 @@ return [
 Configuration
 -------------
 
-> Please note that changes to metric names are only valid if they match the following regular expression: **/^[a-zA-Z_:][a-zA-Z0-9_:]*$/**
-> 
-> Validate your name on [regex101.com](https://regex101.com/r/2d8eqk/1)
+### Register the open metrics route (optional)
+
+Add the following yaml to your routes config to register the `open_metrics` route.
+
+```yml
+# app/config/routes.yaml
+tasko_products_symfony_prometheus_exporter_routes:
+    resource: .
+    type: open_metrics
+```
+
+**Adjust the route configuration as needed**
+
+Create a new yaml configuration file
+`app/config/packages/prometheus_metrics.yaml` if it does not already exist. Add the following 
+configuration to change the default route, the route name and the controller.
+
+```yml
+# app/config/packages/prometheus_metrics.yaml
+
+tasko_products_symfony_prometheus_exporter:
+  routes:
+    open_metrics:
+      #name: 'tasko_products_symfony_prometheus_exporter_open_metrics'
+      #controller: 'TaskoProducts\SymfonyPrometheusExporterBundle\Controller\OpenMetricsController::metrics'
+      path: '/my-custom-metrics-route'
+```
 
 ### Prometheus Redis configuration (optional)
 
@@ -124,8 +148,16 @@ framework:
 ```
 **To overwrite the default labels and texts:**
 
-Create a new configuration yaml file
-`app/config/packages/prometheus_metrics.yaml`. Add the following configuration and now you can adjust the labels and texts via the following configuration.
+> Please note that changes to metric names are only valid if they match the following regular 
+> expression:
+>
+> `/^[a-zA-Z_:][a-zA-Z0-9_:]*$/`
+>
+> Validate your name on [regex101.com](https://regex101.com/r/2d8eqk/1)
+
+Create a new yaml configuration file
+`app/config/packages/prometheus_metrics.yaml` if it does not already exist. Add the following 
+configuration and now you can adjust the labels and texts via the following configuration.
 
 ```yml
 # app/config/packages/prometheus_metrics.yaml
@@ -176,6 +208,13 @@ message_bus_commands_retry_message{message="App\\Message\\FooBarMessage",label="
 ```
 
 ### Enable the messager event subscriber metric collectors (optional)
+
+> Please note that changes to metric names are only valid if they match the following regular 
+> expression:
+>
+> `/^[a-zA-Z_:][a-zA-Z0-9_:]*$/`
+> 
+> Validate your name on [regex101.com](https://regex101.com/r/2d8eqk/1)
 
 Register the desired event subscribers as necessary. Create a new configuration yaml file
 `app/config/packages/prometheus_metrics.yaml`. Add the following configuration and now you can activate/

@@ -1,4 +1,0 @@
-app_extra:
-    # bundles configurable extra routes 
-    resource: .
-    type: extra

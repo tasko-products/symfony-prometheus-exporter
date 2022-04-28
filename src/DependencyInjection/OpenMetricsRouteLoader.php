@@ -17,7 +17,7 @@ use Symfony\Component\Routing\RouteCollection;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\ConfigurationAwareTrait;
 
-class RouteLoader extends Loader
+class OpenMetricsRouteLoader extends Loader
 {
     use ConfigurationAwareTrait;
 
@@ -70,6 +70,6 @@ class RouteLoader extends Loader
 
     public function supports($resource, string $type = null)
     {
-        return 'extra' === $type;
+        return 'open_metrics' === $type;
     }
 }

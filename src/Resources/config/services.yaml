@@ -47,7 +47,7 @@ services:
 
   # Routes
   tasko_products_symfony_prometheus_exporter.routes:
-    class: TaskoProducts\SymfonyPrometheusExporterBundle\DependencyInjection\RouteLoader
+    class: TaskoProducts\SymfonyPrometheusExporterBundle\DependencyInjection\OpenMetricsRouteLoader
     arguments:
       $configurationProvider: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
     tags: 
