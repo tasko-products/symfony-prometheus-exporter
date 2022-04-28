@@ -24,6 +24,7 @@ class TaskoProductsSymfonyPrometheusExporterExtension extends Extension
     public function load(array $configs, ContainerBuilder $container): void
     {
         $this->loadService($container);
+        $this->loadRouting($container);
         $this->loadConfiguration($configs, $container);
     }
 
@@ -31,6 +32,12 @@ class TaskoProductsSymfonyPrometheusExporterExtension extends Extension
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yaml');
+    }
+
+    private function loadRouting(ContainerBuilder $container): void
+    {
+        $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader->load('routes.yaml');
     }
 
     private function loadConfiguration(array $configs, ContainerBuilder $container): void
