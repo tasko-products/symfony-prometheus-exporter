@@ -57,6 +57,7 @@ services:
   TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware: '@tasko_products_symfony_prometheus_exporter.messenger_event_middleware'
   TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware: '@tasko_products_symfony_prometheus_exporter.retry_messenger_event_middleware'
   TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface: '@tasko_products_symfony_prometheus_exporter.configuration'
+  TaskoProducts\SymfonyPrometheusExporterBundle\DependencyInjection\OpenMetricsRouteLoader: '@tasko_products_symfony_prometheus_exporter.routes'
 
   # Prometheus Aliases
 
@@ -74,3 +75,11 @@ services:
   Prometheus\Storage\InMemory: ~
   Prometheus\CollectorRegistry: ['@Prometheus\Storage\InMemory']
   Prometheus\RegistryInterface: '@Prometheus\CollectorRegistry'
+  Prometheus\RenderTextFormat: ~
+  Prometheus\RendererInterface: ['@Prometheus\RenderTextFormat']
+
+  # Controller
+  TaskoProducts\SymfonyPrometheusExporterBundle\Controller\OpenMetricsController:
+      arguments:
+        $registry: '@Prometheus\RegistryInterface'
+        $renderer: '@Prometheus\RendererInterface'
