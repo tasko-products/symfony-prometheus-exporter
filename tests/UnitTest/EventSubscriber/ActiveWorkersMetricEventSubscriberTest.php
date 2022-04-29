@@ -54,9 +54,11 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
             new ConfigurationProvider(
                 new ParameterBag(
                     [
-                        'prometheus_metrics.event_subscribers' => [
-                            'active_workers' => [
-                                'enabled' => true,
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'active_workers' => [
+                                    'enabled' => true,
+                                ],
                             ],
                         ],
                     ],
@@ -119,15 +121,17 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
             new ConfigurationProvider(
                 new ParameterBag(
                     [
-                        'prometheus_metrics.event_subscribers' => [
-                            'active_workers' => [
-                                'enabled' => true,
-                                'namespace' => 'test_namespace',
-                                'metric_name' => 'test_metric',
-                                'help_text' => 'test help text',
-                                'labels' => [
-                                    'queue_names' => 'test_queue_names',
-                                    'transport_names' => 'test_transport_names',
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'active_workers' => [
+                                    'enabled' => true,
+                                    'namespace' => 'test_namespace',
+                                    'metric_name' => 'test_metric',
+                                    'help_text' => 'test help text',
+                                    'labels' => [
+                                        'queue_names' => 'test_queue_names',
+                                        'transport_names' => 'test_transport_names',
+                                    ],
                                 ],
                             ],
                         ],
@@ -160,9 +164,11 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
             new ConfigurationProvider(
                 new ParameterBag(
                     [
-                        'prometheus_metrics.event_subscribers' => [
-                            'active_workers' => [
-                                'enabled' => false,
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'active_workers' => [
+                                    'enabled' => false,
+                                ],
                             ],
                         ],
                     ],

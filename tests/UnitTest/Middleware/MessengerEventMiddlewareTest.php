@@ -153,9 +153,11 @@ class MessengerEventMiddlewareTest extends TestCase
         $givenConfiguration = new ConfigurationProvider(
             new ParameterBag(
                 [
-                    'prometheus_metrics.middlewares' => [
-                        'event_middleware' => [
-                            'metric_name' => 'invalid.metric.name',
+                    'tasko_products_symfony_prometheus_exporter' => [
+                        'middlewares' => [
+                            'event_middleware' => [
+                                'metric_name' => 'invalid.metric.name',
+                            ],
                         ],
                     ],
                 ],
@@ -186,18 +188,20 @@ class MessengerEventMiddlewareTest extends TestCase
                 new ConfigurationProvider(
                     new ParameterBag(
                         [
-                            'prometheus_metrics.middlewares' => [
-                                'event_middleware' => [
-                                    'metric_name' => 'test_metric',
-                                    'help_text' => 'test help text',
-                                    'labels' => [
-                                        'message' => 'test_message',
-                                        'label' => 'test_label',
-                                    ],
-                                    'error_help_text' => 'test error help text',
-                                    'error_labels' => [
-                                        'message' => 'test_message',
-                                        'label' => 'test_label',
+                            'tasko_products_symfony_prometheus_exporter' => [
+                                'middlewares' => [
+                                    'event_middleware' => [
+                                        'metric_name' => 'test_metric',
+                                        'help_text' => 'test help text',
+                                        'labels' => [
+                                            'message' => 'test_message',
+                                            'label' => 'test_label',
+                                        ],
+                                        'error_help_text' => 'test error help text',
+                                        'error_labels' => [
+                                            'message' => 'test_message',
+                                            'label' => 'test_label',
+                                        ],
                                     ],
                                 ],
                             ],
@@ -233,18 +237,20 @@ class MessengerEventMiddlewareTest extends TestCase
                 new ConfigurationProvider(
                     new ParameterBag(
                         [
-                            'prometheus_metrics.middlewares' => [
-                                'event_middleware' => [
-                                    'metric_name' => 'test_metric',
-                                    'help_text' => 'test help text',
-                                    'labels' => [
-                                        'message' => 'test_message',
-                                        'label' => 'test_label',
-                                    ],
-                                    'error_help_text' => 'test error help text',
-                                    'error_labels' => [
-                                        'message' => 'test_message',
-                                        'label' => 'test_label',
+                            'tasko_products_symfony_prometheus_exporter' => [
+                                'middlewares' => [
+                                    'event_middleware' => [
+                                        'metric_name' => 'test_metric',
+                                        'help_text' => 'test help text',
+                                        'labels' => [
+                                            'message' => 'test_message',
+                                            'label' => 'test_label',
+                                        ],
+                                        'error_help_text' => 'test error help text',
+                                        'error_labels' => [
+                                            'message' => 'test_message',
+                                            'label' => 'test_label',
+                                        ],
                                     ],
                                 ],
                             ],

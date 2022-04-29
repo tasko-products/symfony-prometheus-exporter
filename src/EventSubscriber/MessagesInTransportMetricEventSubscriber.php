@@ -17,37 +17,36 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\ConfigurationAwareTrait;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
 class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterface
 {
     use EnvelopeMethodesTrait;
-    use ConfigurationAwareTrait;
 
     private RegistryInterface $registry;
     private bool $enabled = false;
     private string $namespace = '';
     private string $metricName = '';
     private string $helpText = '';
-    /**
-     * @var string[]
-     */
+    /** @var string[] */
     private array $labels = [];
 
     public function __construct(
         RegistryInterface $registry,
-        ConfigurationProviderInterface $configurationProvider,
+        ConfigurationProviderInterface $config,
     ) {
         $this->registry = $registry;
-        $this->configurationProvider = $configurationProvider;
-        $this->configurationPrefix = 'event_subscribers.messages_in_transport';
 
-        $this->enabled = $this->maybeBoolConfig('enabled') ?? false;
-        $this->namespace = $this->maybeStrConfig('namespace') ?? 'messenger_events';
-        $this->metricName = $this->maybeStrConfig('metric_name') ?? 'messages_in_transport';
-        $this->helpText = $this->maybeStrConfig('help_text') ?? 'Messages In Transport';
-        $this->labels = $this->maybeArrayConfig('labels') ?? [
+        $configPrefix = 'event_subscribers.messages_in_transport.';
+
+        $this->enabled = $config->maybeGetBool($configPrefix . 'enabled') ?? false;
+        $this->namespace = $config->maybeGetString($configPrefix . 'namespace')
+            ?? 'messenger_events';
+        $this->metricName = $config->maybeGetString($configPrefix . 'metric_name')
+            ?? 'messages_in_transport';
+        $this->helpText = $config->maybeGetString($configPrefix . 'help_text')
+            ?? 'Messages In Transport';
+        $this->labels = $config->maybeGetArray($configPrefix . 'labels') ?? [
             'message_path' => 'message_path',
             'message_class' => 'message_class',
             'bus' => 'bus',

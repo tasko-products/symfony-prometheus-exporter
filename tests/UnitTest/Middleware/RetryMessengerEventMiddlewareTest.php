@@ -106,14 +106,16 @@ class RetryMessengerEventMiddlewareTest extends TestCase
                 new ConfigurationProvider(
                     new ParameterBag(
                         [
-                            'prometheus_metrics.middlewares' => [
-                                'retry_event_middleware' => [
-                                    'metric_name' => 'test_metric',
-                                    'help_text' => 'test help text',
-                                    'labels' => [
-                                        'message' => 'test_message',
-                                        'label' => 'test_label',
-                                        'retry' => 'test_retry',
+                            'tasko_products_symfony_prometheus_exporter' => [
+                                'middlewares' => [
+                                    'retry_event_middleware' => [
+                                        'metric_name' => 'test_metric',
+                                        'help_text' => 'test help text',
+                                        'labels' => [
+                                            'message' => 'test_message',
+                                            'label' => 'test_label',
+                                            'retry' => 'test_retry',
+                                        ],
                                     ],
                                 ],
                             ],

@@ -43,9 +43,11 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
             new ConfigurationProvider(
                 new ParameterBag(
                     [
-                        'prometheus_metrics.event_subscribers' => [
-                            'messages_in_process' => [
-                                'enabled' => true,
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'messages_in_process' => [
+                                    'enabled' => true,
+                                ],
                             ],
                         ],
                     ],
@@ -273,17 +275,19 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
             new ConfigurationProvider(
                 new ParameterBag(
                     [
-                        'prometheus_metrics.event_subscribers' => [
-                            'messages_in_process' => [
-                                'enabled' => true,
-                                'namespace' => 'test_namespace',
-                                'metric_name' => 'test_metric',
-                                'help_text' => 'test help text',
-                                'labels' => [
-                                    'message_path' => 'test_message_path',
-                                    'message_class' => 'test_message_class',
-                                    'receiver' => 'test_receiver',
-                                    'bus' => 'test_bus',
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'messages_in_process' => [
+                                    'enabled' => true,
+                                    'namespace' => 'test_namespace',
+                                    'metric_name' => 'test_metric',
+                                    'help_text' => 'test help text',
+                                    'labels' => [
+                                        'message_path' => 'test_message_path',
+                                        'message_class' => 'test_message_class',
+                                        'receiver' => 'test_receiver',
+                                        'bus' => 'test_bus',
+                                    ],
                                 ],
                             ],
                         ],
@@ -322,9 +326,11 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
             new ConfigurationProvider(
                 new ParameterBag(
                     [
-                        'prometheus_metrics.event_subscribers' => [
-                            'messages_in_process' => [
-                                'enabled' => false,
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'messages_in_process' => [
+                                    'enabled' => false,
+                                ],
                             ],
                         ],
                     ],
@@ -355,9 +361,11 @@ class MessagesInProcessMetricEventSubscriberTest extends TestCase
             new ConfigurationProvider(
                 new ParameterBag(
                     [
-                        'prometheus_metrics.event_subscribers' => [
-                            'messages_in_process' => [
-                                'enabled' => false,
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'messages_in_process' => [
+                                    'enabled' => false,
+                                ],
                             ],
                         ],
                     ],

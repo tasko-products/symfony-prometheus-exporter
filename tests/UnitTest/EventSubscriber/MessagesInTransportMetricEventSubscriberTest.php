@@ -41,9 +41,11 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
             new ConfigurationProvider(
                 new ParameterBag(
                     [
-                        'prometheus_metrics.event_subscribers' => [
-                            'messages_in_transport' => [
-                                'enabled' => true,
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'messages_in_transport' => [
+                                    'enabled' => true,
+                                ],
                             ],
                         ],
                     ],
@@ -178,16 +180,18 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
             new ConfigurationProvider(
                 new ParameterBag(
                     [
-                        'prometheus_metrics.event_subscribers' => [
-                            'messages_in_transport' => [
-                                'enabled' => true,
-                                'namespace' => 'test_namespace',
-                                'metric_name' => 'test_metric',
-                                'help_text' => 'test help text',
-                                'labels' => [
-                                    'message_path' => 'test_message_path',
-                                    'message_class' => 'test_message_class',
-                                    'bus' => 'test_bus',
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'messages_in_transport' => [
+                                    'enabled' => true,
+                                    'namespace' => 'test_namespace',
+                                    'metric_name' => 'test_metric',
+                                    'help_text' => 'test help text',
+                                    'labels' => [
+                                        'message_path' => 'test_message_path',
+                                        'message_class' => 'test_message_class',
+                                        'bus' => 'test_bus',
+                                    ],
                                 ],
                             ],
                         ],
@@ -227,9 +231,11 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
             new ConfigurationProvider(
                 new ParameterBag(
                     [
-                        'prometheus_metrics.event_subscribers' => [
-                            'messages_in_transport' => [
-                                'enabled' => false,
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'messages_in_transport' => [
+                                    'enabled' => false,
+                                ],
                             ],
                         ],
                     ],

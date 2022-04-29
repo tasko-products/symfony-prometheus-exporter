@@ -17,43 +17,40 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\ConfigurationAwareTrait;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
 class MessengerEventMiddleware implements MiddlewareInterface
 {
     use EnvelopeMethodesTrait;
-    use ConfigurationAwareTrait;
 
     private RegistryInterface $registry;
     private string $metricName = '';
     private string $helpText = '';
-    /**
-     * @var string[]
-     */
+    /** @var string[] */
     private array $labels = [];
     private string $errorHelpText = '';
-    /**
-     * @var string[]
-     */
+    /** @var string[] */
     private array $errorLabels = [];
 
     public function __construct(
         RegistryInterface $registry,
-        ConfigurationProviderInterface $configurationProvider,
+        ConfigurationProviderInterface $config,
     ) {
         $this->registry = $registry;
-        $this->configurationProvider = $configurationProvider;
-        $this->configurationPrefix = 'middlewares.event_middleware';
 
-        $this->metricName = $this->maybeStrConfig('metric_name') ?? 'message';
-        $this->helpText = $this->maybeStrConfig('help_text') ?? 'Executed Messages';
-        $this->labels = $this->maybeArrayConfig('labels') ?? [
+        $configPrefix = 'middlewares.event_middleware.';
+
+        $this->metricName = $config->maybeGetString($configPrefix . 'metric_name')
+            ?? 'message';
+        $this->helpText = $config->maybeGetString($configPrefix . 'help_text')
+            ?? 'Executed Messages';
+        $this->labels = $config->maybeGetArray($configPrefix . 'labels') ?? [
             'message' => 'message',
             'label' => 'label',
         ];
-        $this->errorHelpText = $this->maybeStrConfig('error_help_text') ?? 'Failed Messages';
-        $this->errorLabels = $this->maybeArrayConfig('error_labels') ?? [
+        $this->errorHelpText = $config->maybeGetString($configPrefix . 'error_help_text')
+            ?? 'Failed Messages';
+        $this->errorLabels = $config->maybeGetArray($configPrefix . 'error_labels') ?? [
             'message' => 'message',
             'label' => 'label',
         ];

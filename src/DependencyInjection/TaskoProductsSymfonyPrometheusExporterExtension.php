@@ -37,8 +37,6 @@ class TaskoProductsSymfonyPrometheusExporterExtension extends Extension
     {
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
-        foreach ($config as $key => $value) {
-            $container->setParameter('prometheus_metrics.' . $key, $value);
-        }
+        $container->setParameter('tasko_products_symfony_prometheus_exporter', $config);
     }
 }

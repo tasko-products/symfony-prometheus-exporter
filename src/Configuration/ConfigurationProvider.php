@@ -15,9 +15,10 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class ConfigurationProvider implements ConfigurationProviderInterface
 {
+    private const BUNDLE_NODE_KEY = 'tasko_products_symfony_prometheus_exporter';
+
     public function __construct(
         private ParameterBagInterface $parameterBag,
-        private string $configRoot = 'prometheus_metrics',
     ) {
     }
 
@@ -30,14 +31,15 @@ class ConfigurationProvider implements ConfigurationProviderInterface
             return null;
         }
 
+        $currentNode = $this->getBundleNode();
+
         if ($path === null) {
-            return $this->parameterBag->all();
+            return $currentNode;
         }
 
         $splittedPath = explode('.', $path);
-        $currentNode = $this->queryRootConfig($splittedPath[0]);
 
-        for ($i = 1; $i < count($splittedPath); $i++) {
+        for ($i = 0; $i < count($splittedPath); $i++) {
             if (!is_array($currentNode)) {
                 break;
             }
@@ -48,15 +50,49 @@ class ConfigurationProvider implements ConfigurationProviderInterface
         return $currentNode;
     }
 
-    private function queryRootConfig(string $needle): array|bool|string|int|float|\UnitEnum|null
+    /** @inheritDoc */
+    public function maybeGetBool(string $path): ?bool
     {
-        $configQuery = $this->configRoot . '.' . $needle;
+        $config = $this->get($path);
 
-        if (!$this->parameterBag->has($configQuery)) {
+        if (!is_bool($config)) {
             return null;
         }
 
-        return $this->parameterBag->get($configQuery);
+        return $config;
+    }
+
+    /** @inheritDoc */
+    public function maybeGetString(string $path): ?string
+    {
+        $config = $this->get($path);
+
+        if (!is_string($config) && !$config instanceof \Stringable) {
+            return null;
+        }
+
+        return (string)$config;
+    }
+
+    /** @inheritDoc */
+    public function maybeGetArray(string $path): ?array
+    {
+        $config = $this->get($path);
+
+        if (!is_array($config)) {
+            return null;
+        }
+
+        return $config;
+    }
+
+    private function getBundleNode(): array|bool|string|int|float|\UnitEnum|null
+    {
+        if (!$this->parameterBag->has(self::BUNDLE_NODE_KEY)) {
+            return null;
+        }
+
+        return $this->parameterBag->get(self::BUNDLE_NODE_KEY);
     }
 
     private function tryFindNextNodeForPath(

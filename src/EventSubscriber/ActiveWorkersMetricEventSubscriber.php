@@ -18,35 +18,32 @@ use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
 use Symfony\Component\Messenger\WorkerMetadata;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\ConfigurationAwareTrait;
 
 class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
 {
-    use ConfigurationAwareTrait;
-
     private RegistryInterface $registry;
     private bool $enabled = false;
-    private string $messengerNamespace = '';
-    private string $activeWorkersMetricName = '';
+    private string $namespace = '';
+    private string $metricName = '';
     private string $helpText = '';
-    /**
-     * @var string[]
-     */
+    /** @var string[] */
     private array $labels = [];
 
     public function __construct(
         RegistryInterface $registry,
-        ConfigurationProviderInterface $configurationProvider,
+        ConfigurationProviderInterface $config,
     ) {
         $this->registry = $registry;
-        $this->configurationProvider = $configurationProvider;
-        $this->configurationPrefix = 'event_subscribers.active_workers';
 
-        $this->enabled = $this->maybeBoolConfig('enabled') ?? false;
-        $this->messengerNamespace = $this->maybeStrConfig('namespace') ?? 'messenger_events';
-        $this->activeWorkersMetricName = $this->maybeStrConfig('metric_name') ?? 'active_workers';
-        $this->helpText = $this->maybeStrConfig('help_text') ?? 'Active Workers';
-        $this->labels = $this->maybeArrayConfig('labels') ?? [
+        $configPrefix = 'event_subscribers.active_workers.';
+
+        $this->enabled = $config->maybeGetBool($configPrefix . 'enabled') ?? false;
+        $this->namespace = $config->maybeGetString($configPrefix . 'namespace')
+            ?? 'messenger_events';
+        $this->metricName = $config->maybeGetString($configPrefix . 'metric_name')
+            ?? 'active_workers';
+        $this->helpText = $config->maybeGetString($configPrefix . 'help_text') ?? 'Active Workers';
+        $this->labels = $config->maybeGetArray($configPrefix . 'labels') ?? [
             'queue_names' => 'queue_names',
             'transport_names' => 'transport_names',
         ];
@@ -92,8 +89,8 @@ class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
     private function activeWorkersGauge(): Gauge
     {
         return $this->registry->getOrRegisterGauge(
-            $this->messengerNamespace,
-            $this->activeWorkersMetricName,
+            $this->namespace,
+            $this->metricName,
             $this->helpText,
             $this->activeWorkersLabels(),
         );
