@@ -9,34 +9,32 @@
 
 declare(strict_types=1);
 
-namespace TaskoProducts\SymfonyPrometheusExporterBundle\DependencyInjection;
+namespace TaskoProducts\SymfonyPrometheusExporterBundle\Routing;
 
 use Symfony\Component\Config\Loader\Loader;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
-use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\ConfigurationAwareTrait;
 
 class OpenMetricsRouteLoader extends Loader
 {
-    use ConfigurationAwareTrait;
-
     private bool $isLoaded = false;
     private bool $isEnabled = false;
     private string $openMetricsRouteName = '';
     private string $openMetricsPath = '';
     private array $openMetricsController = [];
 
-    public function __construct(ConfigurationProviderInterface $configurationProvider)
+    public function __construct(ConfigurationProviderInterface $config)
     {
-        $this->configurationProvider = $configurationProvider;
-        $this->configurationPrefix = 'routes.open_metrics';
+        $configPrefix = 'routes.open_metrics.';
 
-        $this->isEnabled = $this->maybeBoolConfig('enabled') ?? false;
-        $this->openMetricsRouteName = $this->maybeStrConfig('name') ?? 'open_metrics';
-        $this->openMetricsPath = $this->maybeStrConfig('path') ?? '/metrics';
+        $this->isEnabled = $config->maybeGetBool($configPrefix . 'enabled') ?? false;
+        $this->openMetricsRouteName = $config->maybeGetString($configPrefix . 'name')
+            ?? 'tasko_products_symfony_prometheus_exporter_open_metrics';
+        $this->openMetricsPath = $config->maybeGetString($configPrefix . 'path') ?? '/metrics';
         $this->openMetricsController = [
-            '_controller' => $this->maybeStrConfig('controller') ?? 'TaskoProducts\SymfonyPrometheusExporterBundle\Controller\OpenMetricsController::metrics',
+            '_controller' => $config->maybeGetString($configPrefix . 'controller')
+                ?? 'TaskoProducts\SymfonyPrometheusExporterBundle\Controller\OpenMetricsController::metrics',
         ];
     }
 

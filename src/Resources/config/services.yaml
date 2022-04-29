@@ -47,7 +47,7 @@ services:
 
   # Routes
   tasko_products_symfony_prometheus_exporter.routes:
-    class: TaskoProducts\SymfonyPrometheusExporterBundle\DependencyInjection\OpenMetricsRouteLoader
+    class: TaskoProducts\SymfonyPrometheusExporterBundle\Routing\OpenMetricsRouteLoader
     arguments:
       $configurationProvider: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
     tags: 
@@ -57,7 +57,7 @@ services:
   TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware: '@tasko_products_symfony_prometheus_exporter.messenger_event_middleware'
   TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware: '@tasko_products_symfony_prometheus_exporter.retry_messenger_event_middleware'
   TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface: '@tasko_products_symfony_prometheus_exporter.configuration'
-  TaskoProducts\SymfonyPrometheusExporterBundle\DependencyInjection\OpenMetricsRouteLoader: '@tasko_products_symfony_prometheus_exporter.routes'
+  TaskoProducts\SymfonyPrometheusExporterBundle\Routing\OpenMetricsRouteLoader: '@tasko_products_symfony_prometheus_exporter.routes'
 
   # Prometheus Aliases
 
