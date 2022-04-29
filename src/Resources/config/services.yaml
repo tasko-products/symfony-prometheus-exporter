@@ -11,7 +11,7 @@ services:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\ActiveWorkersMetricEventSubscriber
     arguments:
       $registry: '@Prometheus\RegistryInterface'
-      $configurationProvider: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
+      $config: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
     tags:
       - { name: kernel.event_subscriber }
 
@@ -19,7 +19,7 @@ services:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInProcessMetricEventSubscriber
     arguments:
       $registry: '@Prometheus\RegistryInterface'
-      $configurationProvider: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
+      $config: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
     tags:
       - { name: kernel.event_subscriber }
 
@@ -27,7 +27,7 @@ services:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\MessagesInTransportMetricEventSubscriber
     arguments:
       $registry: '@Prometheus\RegistryInterface'
-      $configurationProvider: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
+      $config: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
     tags:
       - { name: kernel.event_subscriber }
 
@@ -37,19 +37,19 @@ services:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\MessengerEventMiddleware
     arguments:
       $registry: '@Prometheus\RegistryInterface'
-      $configurationProvider: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
+      $config: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
 
   tasko_products_symfony_prometheus_exporter.retry_messenger_event_middleware:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware
     arguments:
       $registry: '@Prometheus\RegistryInterface'
-      $configurationProvider: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
+      $config: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
 
   # Routes
   tasko_products_symfony_prometheus_exporter.routes:
     class: TaskoProducts\SymfonyPrometheusExporterBundle\Routing\OpenMetricsRouteLoader
     arguments:
-      $configurationProvider: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
+      $config: '@TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface'
     tags: 
       - { name: routing.loader }
 
