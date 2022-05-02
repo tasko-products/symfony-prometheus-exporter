@@ -67,7 +67,7 @@ services:
   Prometheus\CollectorRegistry: ['@Prometheus\Storage\InMemory']
   Prometheus\RegistryInterface: '@Prometheus\CollectorRegistry'
   Prometheus\RenderTextFormat: ~
-  Prometheus\RendererInterface: ['@Prometheus\RenderTextFormat']
+  Prometheus\RendererInterface: '@Prometheus\RenderTextFormat'
 
   # Controller
   TaskoProducts\SymfonyPrometheusExporterBundle\Controller\OpenMetricsController:
@@ -76,3 +76,5 @@ services:
         $renderer: '@Prometheus\RendererInterface'
       tags:
       - { name: controller.service_arguments }
+      calls:
+      - [setContainer, ['@service_container']]
