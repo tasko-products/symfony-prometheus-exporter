@@ -74,3 +74,5 @@ services:
       arguments:
         $registry: '@Prometheus\RegistryInterface'
         $renderer: '@Prometheus\RendererInterface'
+      tags:
+      - { name: controller.service_arguments }
