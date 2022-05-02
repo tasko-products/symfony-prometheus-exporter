@@ -12,11 +12,14 @@ declare(strict_types=1);
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\EventSubscriber;
 
 use PHPUnit\Framework\TestCase;
+use Prometheus\Exception\MetricNotFoundException;
 use Prometheus\RegistryInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
 use Symfony\Component\Messenger\Worker;
 use Symfony\Component\Messenger\WorkerMetadata;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProvider;
 use TaskoProducts\SymfonyPrometheusExporterBundle\EventSubscriber\ActiveWorkersMetricEventSubscriber;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
 
@@ -46,7 +49,22 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
                          ]
                      ]));
 
-        $this->subscriber = new ActiveWorkersMetricEventSubscriber($this->registry);
+        $this->subscriber = new ActiveWorkersMetricEventSubscriber(
+            $this->registry,
+            new ConfigurationProvider(
+                new ParameterBag(
+                    [
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'active_workers' => [
+                                    'enabled' => true,
+                                ],
+                            ],
+                        ],
+                    ],
+                ),
+            ),
+        );
     }
 
     public function testRequiredActiveWorkerEventsSubscribed(): void
@@ -94,5 +112,73 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
         $samples = $metrics[1]->getSamples();
 
         $this->assertEquals($expectedMetricGauge, $samples[0]->getValue());
+    }
+
+    public function testConfigureSubscriberViaConfiguration(): void
+    {
+        $this->subscriber = new ActiveWorkersMetricEventSubscriber(
+            $this->registry,
+            new ConfigurationProvider(
+                new ParameterBag(
+                    [
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'active_workers' => [
+                                    'enabled' => true,
+                                    'namespace' => 'test_namespace',
+                                    'metric_name' => 'test_metric',
+                                    'help_text' => 'test help text',
+                                    'labels' => [
+                                        'queue_names' => 'test_queue_names',
+                                        'transport_names' => 'test_transport_names',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ),
+            ),
+        );
+
+        $this->subscriber->onWorkerStarted(new WorkerStartedEvent($this->worker));
+        $this->subscriber->onWorkerStopped(new WorkerStoppedEvent($this->worker));
+
+        $gauge = $this->registry->getGauge('test_namespace', 'test_metric');
+
+        $this->assertEquals('test_namespace_test_metric', $gauge->getName());
+        $this->assertEquals(
+            [
+                'test_queue_names',
+                'test_transport_names'
+            ],
+            $gauge->getLabelNames()
+        );
+    }
+
+    public function testDisableSubscriberViaConfiguration(): void
+    {
+        $this->expectException(MetricNotFoundException::class);
+
+        $this->subscriber = new ActiveWorkersMetricEventSubscriber(
+            $this->registry,
+            new ConfigurationProvider(
+                new ParameterBag(
+                    [
+                        'tasko_products_symfony_prometheus_exporter' => [
+                            'event_subscribers' => [
+                                'active_workers' => [
+                                    'enabled' => false,
+                                ],
+                            ],
+                        ],
+                    ],
+                ),
+            ),
+        );
+
+        $this->subscriber->onWorkerStarted(new WorkerStartedEvent($this->worker));
+        $this->subscriber->onWorkerStopped(new WorkerStoppedEvent($this->worker));
+
+        $this->registry->getGauge('messenger_events', 'active_workers');
     }
 }

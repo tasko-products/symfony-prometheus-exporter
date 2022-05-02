@@ -4,3 +4,8 @@ parameters:
   paths:
     - src
     - tests
+  ignoreErrors:
+    # The DependencyInjection returns are very complex to deal with
+    -
+      message: '#.*NodeParentInterface\|null.*#'
+      path: ./src/DependencyInjection

@@ -1,0 +1,53 @@
+tasko_products_symfony_prometheus_exporter:
+  event_subscribers:
+    active_workers:
+      enabled: false
+      namespace: 'messenger_events'
+      metric_name: 'active_workers'
+      help_text: 'Active Workers'
+      labels:
+        queue_names: 'queue_names'
+        transport_names: 'transport_names'
+
+    messages_in_process:
+      enabled: false
+      namespace: 'messenger_events'
+      metric_name: 'messages_in_process'
+      help_text: 'Messages In Process'
+      labels:
+        message_path: 'message_path'
+        message_class: 'message_class'
+        receiver: 'receiver'
+        bus: 'bus'
+
+    messages_in_transport:
+      enabled: false
+      namespace: 'messenger_events'
+      metric_name: 'messages_in_transport'
+      help_text: 'Messages In Transport'
+      labels:
+        message_path: 'message_path'
+        message_class: 'message_class'
+        bus: 'bus'
+
+  middlewares:
+    event_middleware:
+      # enabled by 'app/config/messenger.yaml'
+      metric_name: 'message'
+      help_text: 'Executed Messages'
+      labels:
+        message: 'message'
+        label: 'label'
+      error_help_text: 'Failed Messages'
+      error_labels:
+        message: 'message'
+        label: 'label'
+
+    retry_event_middleware:
+      # enabled by 'app/config/messenger.yaml'
+      metric_name: 'retry_message'
+      help_text: 'Retried Messages'
+      labels:
+        message: 'message'
+        label: 'label'
+        retry: 'retry'

@@ -16,21 +16,38 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
 class RetryMessengerEventMiddleware implements MiddlewareInterface
 {
     use EnvelopeMethodesTrait;
 
+    private RegistryInterface $registry;
+    private string $metricName = '';
+    private string $helpText = '';
     /**
-     * @param string[] $labels
+     * @var string[]
      */
+    private array $labels = [];
+
     public function __construct(
-        private RegistryInterface $registry,
-        private string $metricName = 'retry_message',
-        private string $helpText = 'Retried Messages',
-        private array  $labels = ['message', 'label', 'retry'],
+        RegistryInterface $registry,
+        ConfigurationProviderInterface $config,
     ) {
+        $this->registry = $registry;
+
+        $configPrefix = 'middlewares.retry_event_middleware.';
+
+        $this->metricName = $config->maybeGetString($configPrefix . 'metric_name')
+            ?? 'retry_message';
+        $this->helpText = $config->maybeGetString($configPrefix . 'help_text')
+            ?? 'Retried Messages';
+        $this->labels = $config->maybeGetArray($configPrefix . 'labels') ?? [
+            'message' => 'message',
+            'label' => 'label',
+            'retry' => 'retry',
+        ];
     }
 
     /**
@@ -42,7 +59,7 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
             $this->extractBusName($envelope),
             $this->metricName,
             $this->helpText,
-            $this->labels
+            $this->retryEventMiddlewareLabels(),
         );
 
         $redeliveryStamp = $this->lastRedeliveryStamp($envelope);
@@ -56,6 +73,18 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
         $counter->incBy($redeliveryStamp ? 1 : 0, $messageLabels);
 
         return $stack->next()->handle($envelope, $stack);
+    }
+
+    /**
+     * @return string[]
+     */
+    private function retryEventMiddlewareLabels(): array
+    {
+        return [
+            $this->labels['message'],
+            $this->labels['label'],
+            $this->labels['retry'],
+        ];
     }
 
     private function lastRedeliveryStamp(Envelope $envelope): ?RedeliveryStamp

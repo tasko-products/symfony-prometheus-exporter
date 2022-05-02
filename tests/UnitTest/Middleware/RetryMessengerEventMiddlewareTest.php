@@ -13,9 +13,11 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Middlewar
 
 use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\AddBusNameStampMiddleware;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
+use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProvider;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Middleware\RetryMessengerEventMiddleware;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\MessageBusFactory;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Tests\Factory\PrometheusCollectorRegistryFactory;
@@ -27,7 +29,7 @@ class RetryMessengerEventMiddlewareTest extends TestCase
     private RegistryInterface $registry;
 
     private const BUS_NAME = 'message_bus';
-    private const METRIC_NAME = 'retry_messenger';
+    private const METRIC_NAME = 'retry_message';
 
     protected function setUp(): void
     {
@@ -41,7 +43,10 @@ class RetryMessengerEventMiddlewareTest extends TestCase
         $messageBus = MessageBusFactory::create(
             $givenRouting,
             new AddBusNameStampMiddleware(self::BUS_NAME),
-            new RetryMessengerEventMiddleware($this->registry, self::METRIC_NAME)
+            new RetryMessengerEventMiddleware(
+                $this->registry,
+                new ConfigurationProvider(new ParameterBag()),
+            ),
         );
 
         $messageBus->dispatch((new Envelope(new FooBarMessage()))->with(new RedeliveryStamp(1)));
@@ -67,7 +72,10 @@ class RetryMessengerEventMiddlewareTest extends TestCase
         $messageBus = MessageBusFactory::create(
             $givenRouting,
             new AddBusNameStampMiddleware(self::BUS_NAME),
-            new RetryMessengerEventMiddleware($this->registry, self::METRIC_NAME)
+            new RetryMessengerEventMiddleware(
+                $this->registry,
+                new ConfigurationProvider(new ParameterBag()),
+            ),
         );
 
         $messageBus->dispatch(new FooBarMessage());
@@ -84,5 +92,48 @@ class RetryMessengerEventMiddlewareTest extends TestCase
 
         $this->assertEquals($expectedMetricCounter, $samples[0]->getValue());
         $this->assertEquals($expectedLabelValues, $samples[0]->getLabelValues());
+    }
+
+    public function testConfigureMiddlewareViaConfiguration(): void
+    {
+        $givenRouting = [FooBarMessage::class => [new FooBarMessageHandler()]];
+
+        $messageBus = MessageBusFactory::create(
+            $givenRouting,
+            new AddBusNameStampMiddleware(self::BUS_NAME),
+            new RetryMessengerEventMiddleware(
+                $this->registry,
+                new ConfigurationProvider(
+                    new ParameterBag(
+                        [
+                            'tasko_products_symfony_prometheus_exporter' => [
+                                'middlewares' => [
+                                    'retry_event_middleware' => [
+                                        'metric_name' => 'test_metric',
+                                        'help_text' => 'test help text',
+                                        'labels' => [
+                                            'message' => 'test_message',
+                                            'label' => 'test_label',
+                                            'retry' => 'test_retry',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ),
+                ),
+            ),
+        );
+
+        $messageBus->dispatch(new Envelope(new FooBarMessage()))->with(new RedeliveryStamp(1));
+
+        $counter = $this->registry->getCounter(self::BUS_NAME, 'test_metric');
+
+        $this->assertEquals(self::BUS_NAME . '_test_metric', $counter->getName());
+        $this->assertEquals([
+            'test_message',
+            'test_label',
+            'test_retry',
+        ], $counter->getLabelNames());
     }
 }
