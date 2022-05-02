@@ -121,17 +121,6 @@ class Configuration implements ConfigurationInterface
                                     ->end()
                                 ->end()
                             ->end()
-                            ->arrayNode('routes')
-                                ->children()
-                                    ->arrayNode('open_metrics')
-                                        ->children()
-                                            ->scalarNode('name')->end()
-                                            ->scalarNode('path')->end()
-                                            ->scalarNode('controller')->end()
-                                        ->end()
-                                    ->end()
-                                ->end()
-                            ->end()
                         ->end();
 
         return $treeBuilder;

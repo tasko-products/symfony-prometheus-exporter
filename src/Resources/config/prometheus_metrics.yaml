@@ -51,9 +51,4 @@ tasko_products_symfony_prometheus_exporter:
         message: 'message'
         label: 'label'
         retry: 'retry'
-  
-  routes:
-    open_metrics:
-      name: 'tasko_products_symfony_prometheus_exporter_open_metrics'
-      path: '/metrics'
-      controller: 'TaskoProducts\SymfonyPrometheusExporterBundle\Controller\OpenMetricsController::metrics'
+        

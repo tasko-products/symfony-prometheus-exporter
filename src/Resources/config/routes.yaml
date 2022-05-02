@@ -1,3 +1,0 @@
-tasko_products_symfony_prometheus_exporter_open_metrics:
-    resource: .
-    type: open_metrics
