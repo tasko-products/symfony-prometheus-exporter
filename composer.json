@@ -23,15 +23,18 @@
             "TaskoProducts\\SymfonyPrometheusExporterBundle\\Tests\\": "tests/"
         }
     },
-    "license": "tbd",
+    "homepage": "https://www.tasko.de/",
+    "license": "MIT",
     "authors": [
         {
             "name": "Lukas Rotermund",
-            "email": "lukas.rotermund@tasko.de"
+            "email": "lukas.rotermund@tasko.de",
+            "role": "Developer"
         },
         {
             "name": "Tobias Lorenz",
-            "email": "tobias.lorenz@tasko.de"
+            "email": "tobias.lorenz@tasko.de",
+            "role": "Developer"
         }
     ]
 }
