@@ -81,25 +81,9 @@ Add the following yaml to your routes config to register the `open_metrics` rout
 
 ```yml
 # app/config/routes.yaml
-tasko_products_symfony_prometheus_exporter_routes:
-    resource: '@TaskoProductsSymfonyPrometheusExporterBundle/Resources/config/routes.yaml'
-```
-
-**Adjust the route configuration as needed**
-
-Create a new yaml configuration file
-`app/config/packages/prometheus_metrics.yaml` if it does not already exist. Add the following 
-configuration to change the default route, the route name and the controller.
-
-```yml
-# app/config/packages/prometheus_metrics.yaml
-
-tasko_products_symfony_prometheus_exporter:
-  routes:
-    open_metrics:
-      #name: 'tasko_products_symfony_prometheus_exporter_open_metrics'
-      #controller: 'TaskoProducts\SymfonyPrometheusExporterBundle\Controller\OpenMetricsController::metrics'
-      path: '/my-custom-metrics-route'
+open_metrics:
+    path: /metrics
+    controller: TaskoProducts\SymfonyPrometheusExporterBundle\Controller\OpenMetricsController::metrics
 ```
 
 ### Prometheus Redis configuration (optional)
