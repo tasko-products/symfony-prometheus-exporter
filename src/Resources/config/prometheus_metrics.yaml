@@ -51,3 +51,4 @@ tasko_products_symfony_prometheus_exporter:
         message: 'message'
         label: 'label'
         retry: 'retry'
+        
