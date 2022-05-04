@@ -1,4 +1,4 @@
 Symfony Prometheus Exporter – Documentaion
 ==========================================
 
-tbd
+See **README.md** within the root of the project.

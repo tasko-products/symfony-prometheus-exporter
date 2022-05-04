@@ -318,3 +318,7 @@ And just run the cleanup:
 ```bash
 $ vendor/bin/php-cs-fixer fix
 ```
+
+Copyright (c) 2022 tasko Products GmbH 2022. MIT licence.
+
+For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
