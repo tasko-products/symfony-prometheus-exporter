@@ -3,7 +3,9 @@ Symfony Prometheus Exporter
 
 ![Code Checks](https://github.com/tasko-products/symfony-prometheus-exporter/actions/workflows/checks.yml/badge.svg) ![Tests](https://github.com/tasko-products/symfony-prometheus-exporter/actions/workflows/tests.yml/badge.svg)
 
-> Note this bundle is in **active development (it is not ready for the moment)**.
+> Please note that this package is under **active development**. There may still be occasional errors when collecting metrics. 
+>
+> Please report bugs as an issue in Github ([new issue](https://github.com/tasko-products/symfony-prometheus-exporter/issues/new)) or send us a pull request
 
 The Symfony Prometheus Exporter is a bundle that includes a bunch of generic Prometheus
 metrics for your Symfony application, stored in your Redis repository.
