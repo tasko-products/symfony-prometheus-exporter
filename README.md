@@ -77,15 +77,117 @@ return [
 Configuration
 -------------
 
-### Register the open metrics route (optional)
+### Open metrics route (optional)
+
+#### 1. Register the route
 
 Add the following yaml to your routes config to register the `open_metrics` route.
 
 ```yml
 # app/config/routes.yaml
+
 open_metrics:
     path: /metrics
     controller: TaskoProducts\SymfonyPrometheusExporterBundle\Controller\OpenMetricsController::metrics
+```
+
+#### 2. Secure the route with basic authentication
+
+> Please use only basic authentication if you communicate with your application via **TLS**, or locally for development purposes. Your password is only base64 encoded.
+
+To secure your routes you need the Symfony Security Bundle.
+Make sure it is installed by running:
+
+```bash
+$ composer require symfony/security-bundle
+```
+
+Next you define a password hasher, if none has been defined yet. Again, make sure it is installed by running:
+```bash
+$ composer require symfony/password-hasher
+```
+
+Then add it to your security config.
+
+```yml
+# app/config/packages/security.yaml
+
+security:
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+            algorithm: 'auto'
+            cost:      15
+```
+
+Generate an encoded password.
+
+Symfony version < 6:
+```bash
+$ bin/console security:encode-password
+```
+
+Symfony version >= 6:
+```bash
+$ bin/console security:hash-password
+```
+
+Store the encoded password and the username in your environments file.
+
+```bash
+# app/.env
+OPEN_METRICS_BASIC_AUTH_USERNAME='secure-user-name'
+OPEN_METRICS_BASIC_AUTH_PASSWORD='$argon2id$v=19$m=65536,t=4,p=1$DbXHchj+n5kTi9CNG7JhFA$HXtY5aSueVGbK3RxkvBlc8U1+d6Y7VJtYGbbV4CbpFw'
+```
+
+Add Symfony's [memory user provider](https://symfony.com/doc/5.4/security/user_providers.html#memory-user-provider) to the security providers. Here you use the environment variables you defined before.
+
+```yml
+# app/config/packages/security.yaml
+
+security:
+    providers:
+        open_metrics_basic_auth:
+            memory:
+                users:
+                - identifier: '%env(OPEN_METRICS_BASIC_AUTH_USERNAME)%'
+                  password: '%env(OPEN_METRICS_BASIC_AUTH_PASSWORD)%'
+                  roles: [ ROLE_OPEN_METRICS_USER ]
+```
+
+Finally, you need a firewall to secure your route. Add the following [http_basic](https://symfony.com/doc/5.4/security.html#http-basic) firewall to your security config.
+
+```yml
+# app/config/packages/security.yaml
+
+security:
+    firewalls:
+        open_metrics:
+            pattern:  ^/metrics
+            http_basic:
+                provider: open_metrics_basic_auth
+```
+
+Try to retrieve your metrics with the following curl and set the `Authorization` header to your secrets.
+
+Encode your secrets on Linux and Mac:
+```bash
+# output base64 string:
+# c2VjdXJlLXVzZXItbmFtZTpzZWN1cmUtdXNlci1wYXNzd29yZAo=
+
+$ echo 'secure-user-name:secure-user-passwort' | base64
+```
+
+On Windows use [Certutil](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/cc732443(v=ws.11)?redirectedfrom=MSDN#BKMK_encode) to encode your secrets as base64.
+```bash
+# Certutils requires you to encode based on files
+
+$ certutil -encode your-secrets.txt tmp.b64 && findstr /v /c:- tmp.b64 > encoded-secrets.b64
+```
+
+```bash
+$ curl --request GET \
+  --url http://localhost/metrics \
+  --header 'Authorization: Basic c2VjdXJlLXVzZXItbmFtZTpzZWN1cmUtdXNlci1wYXNzd29yZAo='
 ```
 
 ### Prometheus Redis configuration (optional)
