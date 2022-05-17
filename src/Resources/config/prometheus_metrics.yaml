@@ -33,21 +33,26 @@ tasko_products_symfony_prometheus_exporter:
   middlewares:
     event_middleware:
       # enabled by 'app/config/messenger.yaml'
+      namespace: 'middleware'
       metric_name: 'message'
       help_text: 'Executed Messages'
       labels:
+        bus: 'bus'
         message: 'message'
         label: 'label'
       error_help_text: 'Failed Messages'
       error_labels:
+        bus: 'bus'
         message: 'message'
         label: 'label'
 
     retry_event_middleware:
       # enabled by 'app/config/messenger.yaml'
+      namespace: 'middleware'
       metric_name: 'retry_message'
       help_text: 'Retried Messages'
       labels:
+        bus: 'bus'
         message: 'message'
         label: 'label'
         retry: 'retry'

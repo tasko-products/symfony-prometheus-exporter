@@ -29,6 +29,7 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
     use EnvelopeMethodesTrait;
 
     private RegistryInterface $registry;
+    private string $namespace = '';
     private string $metricName = '';
     private string $helpText = '';
     /**
@@ -44,11 +45,14 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
 
         $configPrefix = 'middlewares.retry_event_middleware.';
 
+        $this->namespace = $config->maybeGetString($configPrefix . 'namespace')
+            ?? 'middleware';
         $this->metricName = $config->maybeGetString($configPrefix . 'metric_name')
             ?? 'retry_message';
         $this->helpText = $config->maybeGetString($configPrefix . 'help_text')
             ?? 'Retried Messages';
         $this->labels = $config->maybeGetArray($configPrefix . 'labels') ?? [
+            'bus' => 'bus',
             'message' => 'message',
             'label' => 'label',
             'retry' => 'retry',
@@ -61,7 +65,7 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
     public function handle(Envelope $envelope, StackInterface $stack): Envelope
     {
         $counter = $this->registry->getOrRegisterCounter(
-            $this->extractBusName($envelope),
+            $this->namespace,
             $this->metricName,
             $this->helpText,
             $this->retryEventMiddlewareLabels(),
@@ -70,6 +74,7 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
         $redeliveryStamp = $this->lastRedeliveryStamp($envelope);
 
         $messageLabels = [
+            $this->extractBusName($envelope),
             $this->messageClassPathLabel($envelope),
             $this->messageClassLabel($envelope),
             $this->messageRetryLabel($redeliveryStamp),
@@ -86,6 +91,7 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
     private function retryEventMiddlewareLabels(): array
     {
         return [
+            $this->labels['bus'],
             $this->labels['message'],
             $this->labels['label'],
             $this->labels['retry'],
