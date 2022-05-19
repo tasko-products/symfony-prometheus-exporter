@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace TaskoProducts\SymfonyPrometheusExporterBundle\Middleware;
 
-use Prometheus\Counter;
 use Prometheus\RegistryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
@@ -29,6 +28,7 @@ class MessengerEventMiddleware implements MiddlewareInterface
     use EnvelopeMethodesTrait;
 
     private RegistryInterface $registry;
+    private string $namespace = '';
     private string $metricName = '';
     private string $helpText = '';
     /** @var string[] */
@@ -45,17 +45,21 @@ class MessengerEventMiddleware implements MiddlewareInterface
 
         $configPrefix = 'middlewares.event_middleware.';
 
+        $this->namespace = $config->maybeGetString($configPrefix . 'namespace')
+            ?? 'middleware';
         $this->metricName = $config->maybeGetString($configPrefix . 'metric_name')
             ?? 'message';
         $this->helpText = $config->maybeGetString($configPrefix . 'help_text')
             ?? 'Executed Messages';
         $this->labels = $config->maybeGetArray($configPrefix . 'labels') ?? [
+            'bus' => 'bus',
             'message' => 'message',
             'label' => 'label',
         ];
         $this->errorHelpText = $config->maybeGetString($configPrefix . 'error_help_text')
             ?? 'Failed Messages';
         $this->errorLabels = $config->maybeGetArray($configPrefix . 'error_labels') ?? [
+            'bus' => 'bus',
             'message' => 'message',
             'label' => 'label',
         ];
@@ -66,23 +70,22 @@ class MessengerEventMiddleware implements MiddlewareInterface
      */
     public function handle(Envelope $envelope, StackInterface $stack): Envelope
     {
-        $busName = $this->extractBusName($envelope);
-
-        $counter = $this->getCounter(
-            $busName,
+        $counter = $this->registry->getOrRegisterCounter(
+            $this->namespace,
             $this->metricName,
             $this->helpText,
             $this->eventMiddlewareLabels(),
         );
 
-        $errCounter = $this->getErrorCounter(
-            $busName,
-            $this->metricName,
+        $errCounter = $this->registry->getOrRegisterCounter(
+            $this->namespace,
+            $this->metricName . '_error',
             $this->errorHelpText,
             $this->eventMiddlewareErrorLabels(),
         );
 
         $messageLabels = [
+            $this->extractBusName($envelope),
             $this->messageClassPathLabel($envelope),
             $this->messageClassLabel($envelope),
         ];
@@ -107,6 +110,7 @@ class MessengerEventMiddleware implements MiddlewareInterface
     private function eventMiddlewareLabels(): array
     {
         return [
+            $this->labels['bus'],
             $this->labels['message'],
             $this->labels['label'],
         ];
@@ -118,42 +122,9 @@ class MessengerEventMiddleware implements MiddlewareInterface
     private function eventMiddlewareErrorLabels(): array
     {
         return [
+            $this->errorLabels['bus'],
             $this->errorLabels['message'],
             $this->errorLabels['label'],
         ];
-    }
-
-    /**
-     * @param string[] $labels
-     */
-    private function getCounter(
-        string $busName,
-        string $name,
-        string $helperText,
-        array $labels
-    ): Counter {
-        return $this->registry->getOrRegisterCounter(
-            $busName,
-            $name,
-            $helperText,
-            $labels
-        );
-    }
-
-    /**
-     * @param string[] $labels
-     */
-    private function getErrorCounter(
-        string $busName,
-        string $name,
-        string $helperText,
-        array $labels
-    ): Counter {
-        return $this->getCounter(
-            $busName,
-            $name . '_error',
-            $helperText,
-            $labels
-        );
     }
 }

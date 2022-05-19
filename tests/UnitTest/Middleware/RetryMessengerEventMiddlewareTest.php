@@ -33,6 +33,7 @@ class RetryMessengerEventMiddlewareTest extends TestCase
 {
     private RegistryInterface $registry;
 
+    private const NAMESPACE = 'middleware';
     private const BUS_NAME = 'message_bus';
     private const METRIC_NAME = 'retry_message';
 
@@ -56,13 +57,13 @@ class RetryMessengerEventMiddlewareTest extends TestCase
 
         $messageBus->dispatch((new Envelope(new FooBarMessage()))->with(new RedeliveryStamp(1)));
 
-        $counter = $this->registry->getCounter(self::BUS_NAME, self::METRIC_NAME);
+        $counter = $this->registry->getCounter(self::NAMESPACE, self::METRIC_NAME);
 
-        $this->assertEquals(self::BUS_NAME . '_' . self::METRIC_NAME, $counter->getName());
-        $this->assertEquals(['message', 'label', 'retry'], $counter->getLabelNames());
+        $this->assertEquals(self::NAMESPACE . '_' . self::METRIC_NAME, $counter->getName());
+        $this->assertEquals(['bus', 'message', 'label', 'retry'], $counter->getLabelNames());
 
         $expectedMetricCounter = 1;
-        $expectedLabelValues = [FooBarMessage::class, 'FooBarMessage', '1'];
+        $expectedLabelValues = [self::BUS_NAME, FooBarMessage::class, 'FooBarMessage', '1'];
         $metrics = $this->registry->getMetricFamilySamples();
         $samples = $metrics[0]->getSamples();
 
@@ -85,13 +86,13 @@ class RetryMessengerEventMiddlewareTest extends TestCase
 
         $messageBus->dispatch(new FooBarMessage());
 
-        $counter = $this->registry->getCounter(self::BUS_NAME, self::METRIC_NAME);
+        $counter = $this->registry->getCounter(self::NAMESPACE, self::METRIC_NAME);
 
-        $this->assertEquals(self::BUS_NAME . '_' . self::METRIC_NAME, $counter->getName());
-        $this->assertEquals(['message', 'label', 'retry'], $counter->getLabelNames());
+        $this->assertEquals(self::NAMESPACE . '_' . self::METRIC_NAME, $counter->getName());
+        $this->assertEquals(['bus', 'message', 'label', 'retry'], $counter->getLabelNames());
 
         $expectedMetricCounter = 0;
-        $expectedLabelValues = [FooBarMessage::class, 'FooBarMessage', '0'];
+        $expectedLabelValues = [self::BUS_NAME, FooBarMessage::class, 'FooBarMessage', '0'];
         $metrics = $this->registry->getMetricFamilySamples();
         $samples = $metrics[0]->getSamples();
 
@@ -114,9 +115,11 @@ class RetryMessengerEventMiddlewareTest extends TestCase
                             'tasko_products_symfony_prometheus_exporter' => [
                                 'middlewares' => [
                                     'retry_event_middleware' => [
+                                        'namespace' => 'test_namespace',
                                         'metric_name' => 'test_metric',
                                         'help_text' => 'test help text',
                                         'labels' => [
+                                            'bus' => 'test_bus',
                                             'message' => 'test_message',
                                             'label' => 'test_label',
                                             'retry' => 'test_retry',
@@ -132,13 +135,65 @@ class RetryMessengerEventMiddlewareTest extends TestCase
 
         $messageBus->dispatch(new Envelope(new FooBarMessage()))->with(new RedeliveryStamp(1));
 
-        $counter = $this->registry->getCounter(self::BUS_NAME, 'test_metric');
+        $counter = $this->registry->getCounter('test_namespace', 'test_metric');
 
-        $this->assertEquals(self::BUS_NAME . '_test_metric', $counter->getName());
+        $this->assertEquals('test_namespace_test_metric', $counter->getName());
         $this->assertEquals([
+            'test_bus',
             'test_message',
             'test_label',
             'test_retry',
         ], $counter->getLabelNames());
+    }
+
+    public function testMessageBusNameNotIncludedInMetricName(): void
+    {
+        $expectedNamespace = 'test_namespace';
+        $expectedMetric = 'test_metric';
+
+        $givenRouting = [FooBarMessage::class => [new FooBarMessageHandler()]];
+
+        $messageBus = MessageBusFactory::create(
+            $givenRouting,
+            new AddBusNameStampMiddleware(self::BUS_NAME),
+            new RetryMessengerEventMiddleware(
+                $this->registry,
+                new ConfigurationProvider(
+                    new ParameterBag(
+                        [
+                            'tasko_products_symfony_prometheus_exporter' => [
+                                'middlewares' => [
+                                    'retry_event_middleware' => [
+                                        'namespace' => 'test_namespace',
+                                        'metric_name' => 'test_metric',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ),
+                ),
+            ),
+        );
+
+        $messageBus->dispatch(new FooBarMessage());
+
+        $counter = $this->registry->getCounter($expectedNamespace, $expectedMetric);
+
+        $this->assertEquals($expectedNamespace . '_' . $expectedMetric, $counter->getName());
+        $this->assertEquals(['bus', 'message', 'label', 'retry'], $counter->getLabelNames());
+
+        $metrics = $this->registry->getMetricFamilySamples();
+        $samples = $metrics[0]->getSamples();
+
+        $this->assertEquals($expectedNamespace . '_' . $expectedMetric, $samples[0]->getName());
+        $this->assertEquals(
+            [
+                self::BUS_NAME,
+                FooBarMessage::class,
+                'FooBarMessage',
+                '0'
+            ],
+            $samples[0]->getLabelValues()
+        );
     }
 }

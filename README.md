@@ -15,9 +15,9 @@ your app which data to collect and provide to the Prometheus query.
 
 - messenger metrics via middleware
 - messenger metrics via events
-- request metrics
-- logging metrics
-- custom metrics via the Collector composition
+- (todo) request metrics
+- (todo) logging metrics
+- (todo) custom metrics via the Collector composition
 
 This Symfony bundle is based on the unoffical Prometheus PHP client [PHP library](https://github.com/PromPHP/prometheus_client_php).
 
@@ -253,21 +253,26 @@ tasko_products_symfony_prometheus_exporter:
   middlewares:
     event_middleware:
       # enabled by 'app/config/messenger.yaml'
+      namespace: 'middleware'
       metric_name: 'message'
       help_text: 'Executed Messages'
       labels:
+        bus: 'bus'
         message: 'message'
         label: 'label'
       error_help_text: 'Failed Messages'
       error_labels:
+        bus: 'bus'
         message: 'message'
         label: 'label'
 
     retry_event_middleware:
       # enabled by 'app/config/messenger.yaml'
+      namespace: 'middleware'
       metric_name: 'retry_message'
       help_text: 'Retried Messages'
       labels:
+        bus: 'bus'
         message: 'message'
         label: 'label'
         retry: 'retry'
@@ -275,23 +280,23 @@ tasko_products_symfony_prometheus_exporter:
 
 Example for the `MessengerEventMiddleware`:
 ```bash
-# HELP message_bus_commands_message Executed Messages
-# TYPE message_bus_commands_message counter
-message_bus_commands_message{message="App\\Message\\FailingFooBarMessage",label="FailingFooBarMessage"} 1337
-message_bus_commands_message{message="App\\Message\\FooBarMessage",label="FooBarMessage"} 2096
-# HELP message_bus_commands_message_error Failed Messages
-# TYPE message_bus_commands_message_error counter
-message_bus_commands_message_error{message="App\\Message\\FailingFooBarMessage",label="FailingFooBarMessage"} 1337
-message_bus_commands_message_error{message="App\\Message\\FooBarMessage",label="FooBarMessage"} 0
+# HELP middleware_message Executed Messages
+# TYPE middleware_message counter
+middleware_message{bus="message_bus_commands",message="App\\Message\\FailingFooBarMessage",label="FailingFooBarMessage"} 1337
+middleware_message{bus="message_bus_commands",message="App\\Message\\FooBarMessage",label="FooBarMessage"} 2096
+# HELP middleware_message_error Failed Messages
+# TYPE middleware_message_error counter
+middleware_message_error{bus="message_bus_commands",message="App\\Message\\FailingFooBarMessage",label="FailingFooBarMessage"} 1337
+middleware_message_error{bus="message_bus_commands",message="App\\Message\\FooBarMessage",label="FooBarMessage"} 0
 ```
 
 Example for the `RetryMessengerEventMiddleware`:
 ```bash
-# HELP message_bus_commands_retry_message Retried Messages
-# TYPE message_bus_commands_retry_message counter
-message_bus_commands_retry_message{message="App\\Message\\FailingFooBarMessage",label="FailingFooBarMessage",retry="0"} 0
-message_bus_commands_retry_message{message="App\\Message\\FooBarMessage",label="FooBarMessage",retry="0"} 0
-message_bus_commands_retry_message{message="App\\Message\\FooBarMessage",label="FooBarMessage",retry="2"} 666
+# HELP middleware_retry_message Retried Messages
+# TYPE middleware_retry_message counter
+middleware_retry_message{bus="message_bus_commands",message="App\\Message\\FailingFooBarMessage",label="FailingFooBarMessage",retry="0"} 0
+middleware_retry_message{bus="message_bus_commands",message="App\\Message\\FooBarMessage",label="FooBarMessage",retry="0"} 0
+middleware_retry_message{bus="message_bus_commands",message="App\\Message\\FooBarMessage",label="FooBarMessage",retry="2"} 666
 ```
 
 ### Enable the messager event subscriber metric collectors (optional)
