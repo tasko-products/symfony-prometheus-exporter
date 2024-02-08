@@ -78,6 +78,7 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
                     new FooBarMessage(),
                     [new BusNameStamp('foobar_bus')],
                 ),
+                senders: [],
             ),
         );
 
@@ -122,7 +123,7 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
         $envelope = new Envelope(new FooBarMessage(), [new BusNameStamp('foobar_bus')]);
 
         $this->subscriber->onSendMessageToTransports(
-            new SendMessageToTransportsEvent($envelope),
+            new SendMessageToTransportsEvent($envelope, senders: []),
         );
 
         $this->subscriber->onWorkerMessageReceived(
@@ -159,7 +160,7 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
         $envelope = new Envelope(new FooBarMessage(), [new BusNameStamp('foobar_bus')]);
 
         $this->subscriber->onSendMessageToTransports(
-            new SendMessageToTransportsEvent($envelope),
+            new SendMessageToTransportsEvent($envelope, senders: []),
         );
 
         $this->subscriber->onWorkerMessageReceived(
@@ -211,6 +212,7 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
                     new FooBarMessage(),
                     [new BusNameStamp('foobar_bus')],
                 ),
+                senders: [],
             ),
         );
 
@@ -251,7 +253,7 @@ class MessagesInTransportMetricEventSubscriberTest extends TestCase
         $envelope = new Envelope(new FooBarMessage());
 
         $this->subscriber->onSendMessageToTransports(
-            new SendMessageToTransportsEvent($envelope),
+            new SendMessageToTransportsEvent($envelope, senders: []),
         );
 
         $this->subscriber->onWorkerMessageReceived(
