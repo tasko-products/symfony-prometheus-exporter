@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2e220628c43422a68ecdeb216f8a7d9e",
+    "content-hash": "92848b3b3cc8bc784fa8bae4515bc2f0",
     "packages": [
         {
             "name": "promphp/prometheus_client_php",
@@ -1152,16 +1152,16 @@
         },
         {
             "name": "symfony/framework-bundle",
-            "version": "v6.4.3",
+            "version": "v6.4.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/framework-bundle.git",
-                "reference": "fb413ac4483803954411966a39f3a9204835848e"
+                "reference": "6cbdb0cc3ddbb63499262cd3036882b08ee2690b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/framework-bundle/zipball/fb413ac4483803954411966a39f3a9204835848e",
-                "reference": "fb413ac4483803954411966a39f3a9204835848e",
+                "url": "https://api.github.com/repos/symfony/framework-bundle/zipball/6cbdb0cc3ddbb63499262cd3036882b08ee2690b",
+                "reference": "6cbdb0cc3ddbb63499262cd3036882b08ee2690b",
                 "shasum": ""
             },
             "require": {
@@ -1200,7 +1200,7 @@
                 "symfony/mime": "<6.4",
                 "symfony/property-access": "<5.4",
                 "symfony/property-info": "<5.4",
-                "symfony/scheduler": "<6.4.3|>=7.0.0,<7.0.3",
+                "symfony/scheduler": "<6.4.4|>=7.0.0,<7.0.4",
                 "symfony/security-core": "<5.4",
                 "symfony/security-csrf": "<5.4",
                 "symfony/serializer": "<6.4",
@@ -1239,7 +1239,7 @@
                 "symfony/process": "^5.4|^6.0|^7.0",
                 "symfony/property-info": "^5.4|^6.0|^7.0",
                 "symfony/rate-limiter": "^5.4|^6.0|^7.0",
-                "symfony/scheduler": "^6.4.3|^7.0.3",
+                "symfony/scheduler": "^6.4.4|^7.0.4",
                 "symfony/security-bundle": "^5.4|^6.0|^7.0",
                 "symfony/semaphore": "^5.4|^6.0|^7.0",
                 "symfony/serializer": "^6.4|^7.0",
@@ -1252,7 +1252,7 @@
                 "symfony/web-link": "^5.4|^6.0|^7.0",
                 "symfony/workflow": "^6.4|^7.0",
                 "symfony/yaml": "^5.4|^6.0|^7.0",
-                "twig/twig": "^2.10|^3.0"
+                "twig/twig": "^2.10|^3.0.4"
             },
             "type": "symfony-bundle",
             "autoload": {
@@ -1280,7 +1280,7 @@
             "description": "Provides a tight integration between Symfony components and the Symfony full-stack framework",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/framework-bundle/tree/v6.4.3"
+                "source": "https://github.com/symfony/framework-bundle/tree/v6.4.10"
             },
             "funding": [
                 {
@@ -1296,7 +1296,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-01-29T15:02:55+00:00"
+            "time": "2024-07-26T13:24:20+00:00"
         },
         {
             "name": "symfony/http-foundation",
@@ -5413,12 +5413,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": ">=8.1"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }
