@@ -1,10 +1,8 @@
 <?php
 /**
- * @link            https://tasko.de/ tasko Products GmbH
- * @copyright       (c) tasko Products GmbH 2022
- * @license         http://www.opensource.org/licenses/mit-license.html MIT License
- * @author          Lukas Rotermund <lukas.rotermund@tasko.de>
- * @version         1.0.0
+ * @link         http://www.tasko-products.de/ tasko Products GmbH
+ * @copyright    (c) tasko Products GmbH
+ * @license      http://www.opensource.org/licenses/mit-license.html MIT License
  *
  * This file is part of tasko-products/symfony-prometheus-exporter.
  *
@@ -42,7 +40,8 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
 
         $this->worker = $this->getMockBuilder(Worker::class)
                              ->disableOriginalConstructor()
-                             ->getMock();
+                             ->getMock()
+        ;
 
         $this->worker->expects($this->any())
                      ->method('getMetadata')
@@ -50,9 +49,10 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
                          'transportNames' => ['transport', 'prio_transport'],
                          'queueNames' => [
                             'foobar_worker_queue',
-                            'priority_foobar_worker_queue'
-                         ]
-                     ]));
+                            'priority_foobar_worker_queue',
+                         ],
+                     ]))
+        ;
 
         $this->subscriber = new ActiveWorkersMetricEventSubscriber(
             $this->registry,
@@ -154,9 +154,9 @@ class ActiveWorkersMetricEventSubscriberTest extends TestCase
         $this->assertEquals(
             [
                 'test_queue_names',
-                'test_transport_names'
+                'test_transport_names',
             ],
-            $gauge->getLabelNames()
+            $gauge->getLabelNames(),
         );
     }
 

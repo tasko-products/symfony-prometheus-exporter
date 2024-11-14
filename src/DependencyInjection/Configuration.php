@@ -1,10 +1,8 @@
 <?php
 /**
- * @link            https://tasko.de/ tasko Products GmbH
- * @copyright       (c) tasko Products GmbH 2022
- * @license         http://www.opensource.org/licenses/mit-license.html MIT License
- * @author          Lukas Rotermund <lukas.rotermund@tasko.de>
- * @version         1.0.0
+ * @link         http://www.tasko-products.de/ tasko Products GmbH
+ * @copyright    (c) tasko Products GmbH
+ * @license      http://www.opensource.org/licenses/mit-license.html MIT License
  *
  * This file is part of tasko-products/symfony-prometheus-exporter.
  *
@@ -131,7 +129,8 @@ class Configuration implements ConfigurationInterface
                                     ->end()
                                 ->end()
                             ->end()
-                        ->end();
+                        ->end()
+        ;
 
         return $treeBuilder;
     }
