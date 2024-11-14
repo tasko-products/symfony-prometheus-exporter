@@ -19,6 +19,7 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Tests\UnitTest\Controlle
 use PHPUnit\Framework\TestCase;
 use Prometheus\RegistryInterface;
 use Prometheus\RendererInterface;
+use Symfony\Component\HttpFoundation\Response;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Controller\OpenMetricsController;
 
 class OpenMetricsControllerTest extends TestCase
@@ -35,14 +36,14 @@ class OpenMetricsControllerTest extends TestCase
         EOD;
 
         $renderer->expects($this->once())
-                 ->method('render')
-                 ->willReturn($givenMetric);
+            ->method('render')
+            ->willReturn($givenMetric);
 
         $controller = new OpenMetricsController($registry, $renderer);
 
         $metricsResponse = $controller->metrics();
 
-        $this->assertEquals(200, $metricsResponse->getStatusCode());
+        $this->assertEquals(Response::HTTP_OK, $metricsResponse->getStatusCode());
 
         /**
          * @var string $content
