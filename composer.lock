@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "92848b3b3cc8bc784fa8bae4515bc2f0",
+    "content-hash": "dd8743c65f6ef94ba5365c8bcd0e73b5",
     "packages": [
         {
             "name": "promphp/prometheus_client_php",
@@ -2215,6 +2215,41 @@
                 }
             ],
             "time": "2024-01-23T14:51:35+00:00"
+        },
+        {
+            "name": "tasko-products/php-codestyle",
+            "version": "1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tasko-products/php-codestyle.git",
+                "reference": "0bfe944688dc4d961963d470cdc6544de2e511d1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tasko-products/php-codestyle/zipball/0bfe944688dc4d961963d470cdc6544de2e511d1",
+                "reference": "0bfe944688dc4d961963d470cdc6544de2e511d1",
+                "shasum": ""
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.0.0",
+                "php": ">=8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "TaskoProducts\\Codestyle\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Description of tasko Products GmbH PHP Code Styles & PHP CS Fixer Rulesets",
+            "support": {
+                "issues": "https://github.com/tasko-products/php-codestyle/issues",
+                "source": "https://github.com/tasko-products/php-codestyle/tree/1.2.0"
+            },
+            "time": "2023-11-30T13:08:43+00:00"
         }
     ],
     "packages-dev": [
