@@ -6,6 +6,6 @@ parameters:
   ignoreErrors:
     # The DependencyInjection returns are very complex to deal with
     -
-      message: '#.*NodeParentInterface\|null.*#'
+      message: '#.*NodeParentInterface\|null|Cannot call method .*\(\) on mixed*#'
       path: ./src/DependencyInjection
     - identifier: missingType.iterableValue

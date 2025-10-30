@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link         http://www.tasko-products.de/ tasko Products GmbH
  * @copyright    (c) tasko Products GmbH
@@ -107,7 +108,7 @@ class ConfigurationProvider implements ConfigurationProviderInterface
         /**
          * @var int|bool $result
          */
-        $result = array_search($needle, $haystack);
+        $result = array_search($needle, $haystack, true);
 
         if ($result === false) {
             return null;
