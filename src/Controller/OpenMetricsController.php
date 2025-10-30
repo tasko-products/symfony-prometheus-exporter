@@ -21,13 +21,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class OpenMetricsController extends AbstractController
+final class OpenMetricsController extends AbstractController
 {
     private const MIME_TYPE = 'text/plain; version=0.0.4';
 
     public function __construct(
-        private RegistryInterface $registry,
-        private RendererInterface $renderer,
+        private readonly RegistryInterface $registry,
+        private readonly RendererInterface $renderer,
     ) {
     }
 

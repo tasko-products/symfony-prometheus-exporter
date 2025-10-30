@@ -25,39 +25,56 @@ use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
-class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
+final class MessagesInProcessMetricEventSubscriber implements
+    EventSubscriberInterface
 {
     use EnvelopeMethodesTrait;
 
-    private RegistryInterface $registry;
     private bool $enabled = false;
     private string $namespace = '';
     private string $metricName = '';
     private string $helpText = '';
-    /** @var string[] */
-    private array $labels = [];
+
+    /**
+     * @var array{
+     *     message_path: string,
+     *     message_class: string,
+     *     receiver: string,
+     *     bus: string,
+     * }
+     */
+    private array $labels;
 
     public function __construct(
-        RegistryInterface $registry,
+        private readonly RegistryInterface $registry,
         ConfigurationProviderInterface $config,
     ) {
-        $this->registry = $registry;
+        $configPrefix = 'event_subscribers.messages_in_process';
 
-        $configPrefix = 'event_subscribers.messages_in_process.';
-
-        $this->enabled = $config->maybeGetBool($configPrefix . 'enabled') ?? false;
-        $this->namespace = $config->maybeGetString($configPrefix . 'namespace')
+        $this->enabled = $config->maybeGetBool("{$configPrefix}.enabled")
+            ?? false;
+        $this->namespace = $config->maybeGetString("{$configPrefix}.namespace")
             ?? 'messenger_events';
-        $this->metricName = $config->maybeGetString($configPrefix . 'metric_name')
+        $this->metricName = $config->maybeGetString("{$configPrefix}.metric_name")
             ?? 'messages_in_process';
-        $this->helpText = $config->maybeGetString($configPrefix . 'help_text')
+        $this->helpText = $config->maybeGetString("{$configPrefix}.help_text")
             ?? 'Messages In Process';
-        $this->labels = $config->maybeGetArray($configPrefix . 'labels') ?? [
-            'message_path' => 'message_path',
-            'message_class' => 'message_class',
-            'receiver' => 'receiver',
-            'bus' => 'bus',
-        ];
+
+        /**
+         * @var array{
+         *     message_path?: string,
+         *     message_class?: string,
+         *     receiver?: string,
+         *     bus?: string,
+         * }
+         */
+        $labels = $config->maybeGetArray("{$configPrefix}.labels") ?? [];
+        $labels['message_path'] ??= 'message_path';
+        $labels['message_class'] ??= 'message_class';
+        $labels['receiver'] ??= 'receiver';
+        $labels['bus'] ??= 'bus';
+
+        $this->labels = $labels;
     }
 
     /**
@@ -72,17 +89,21 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
         ];
     }
 
-    public function onWorkerMessageReceived(WorkerMessageReceivedEvent $event): void
-    {
+    public function onWorkerMessageReceived(
+        WorkerMessageReceivedEvent $event,
+    ): void {
         if (!$this->enabled || $this->isRedelivered($event->getEnvelope())) {
             return;
         }
 
-        $this->messagesInProcessGauge()->inc($this->messagesInProcessLabelValues($event));
+        $this->messagesInProcessGauge()->inc(
+            $this->messagesInProcessLabelValues($event),
+        );
     }
 
-    public function onWorkerMessageHandled(WorkerMessageHandledEvent $event): void
-    {
+    public function onWorkerMessageHandled(
+        WorkerMessageHandledEvent $event,
+    ): void {
         $this->decMetric($event);
     }
 
@@ -95,13 +116,16 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
         $this->decMetric($event);
     }
 
-    private function decMetric(WorkerMessageHandledEvent|WorkerMessageFailedEvent $event): void
-    {
+    private function decMetric(
+        WorkerMessageHandledEvent|WorkerMessageFailedEvent $event,
+    ): void {
         if (!$this->enabled) {
             return;
         }
 
-        $this->messagesInProcessGauge()->dec($this->messagesInProcessLabelValues($event));
+        $this->messagesInProcessGauge()->dec(
+            $this->messagesInProcessLabelValues($event),
+        );
     }
 
     private function messagesInProcessGauge(): Gauge
@@ -115,7 +139,7 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
     private function messagesInProcessLabels(): array
     {
@@ -128,10 +152,11 @@ class MessagesInProcessMetricEventSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
-    private function messagesInProcessLabelValues(AbstractWorkerMessageEvent $event): array
-    {
+    private function messagesInProcessLabelValues(
+        AbstractWorkerMessageEvent $event,
+    ): array {
         $envelope = $event->getEnvelope();
 
         return [

@@ -21,10 +21,15 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Middleware\HandleMessageMiddleware;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 
-class MessageBusFactory
+final class MessageBusFactory
 {
-    public static function create(array $routing, MiddlewareInterface ...$middleware): MessageBusInterface
-    {
+    /**
+     * @param array<array<callable>> $routing
+     */
+    public static function create(
+        array $routing,
+        MiddlewareInterface ...$middleware,
+    ): MessageBusInterface {
         return new MessageBus(array_merge(
             $middleware,
             [new HandleMessageMiddleware(new HandlersLocator($routing))],

@@ -50,7 +50,6 @@ class OpenMetricsControllerTest extends TestCase
          */
         $content = $metricsResponse->getContent();
 
-        $this->assertIsString($content);
         $this->assertEquals(
             $givenMetric,
             $content,

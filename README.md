@@ -120,13 +120,6 @@ security:
 ```
 
 Generate an encoded password.
-
-Symfony version < 6:
-```bash
-$ bin/console security:encode-password
-```
-
-Symfony version >= 6:
 ```bash
 $ bin/console security:hash-password
 ```
