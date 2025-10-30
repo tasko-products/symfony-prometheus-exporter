@@ -1,28 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- https://phpunit.readthedocs.io/en/latest/configuration.html -->
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd" 
-         backupGlobals="false" 
-         backupStaticAttributes="false" 
-         colors="false" 
-         convertErrorsToExceptions="true" 
-         convertNoticesToExceptions="true" 
-         convertWarningsToExceptions="true" 
-         processIsolation="false" 
-         stopOnFailure="false" 
-         bootstrap="tests/bootstrap.php">
-  <coverage>
-    <include>
-      <directory suffix=".php">./</directory>
-    </include>
-    <exclude>
-      <directory>vendor</directory>
-      <directory>tests</directory>
-    </exclude>
-  </coverage>
-  <testsuites>
-    <testsuite name="Test Suite">
-      <directory>./tests</directory>
-    </testsuite>
-  </testsuites>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.4/phpunit.xsd"
+         backupGlobals="false"
+         colors="false"
+         processIsolation="false"
+         stopOnFailure="false"
+         bootstrap="tests/bootstrap.php"
+>
+    <testsuites>
+        <testsuite name="Test Suite">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </source>
+
+    <coverage>
+        <report>
+            <clover outputFile="test_results/coverage.xml"/>
+            <cobertura outputFile="test_results/cobertura-coverage.xml"/>
+        </report>
+    </coverage>
+
+    <logging>
+        <junit outputFile="test_results/phpunit.xml"/>
+    </logging>
 </phpunit>
