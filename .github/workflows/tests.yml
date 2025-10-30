@@ -17,13 +17,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.composer/cache/files
-          key: dependencies-php-8.1-composer-${{ hashFiles('composer.json') }}
+          key: dependencies-php-8.4-composer-${{ hashFiles('composer.json') }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.4
-          coverage: none
+          coverage: xdebug
 
       - name: Install dependencies
         run: composer update --prefer-stable --prefer-dist --no-interaction --no-suggest
