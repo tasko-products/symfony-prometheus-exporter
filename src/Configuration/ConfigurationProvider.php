@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link         http://www.tasko-products.de/ tasko Products GmbH
  * @copyright    (c) tasko Products GmbH
@@ -16,7 +17,8 @@ namespace TaskoProducts\SymfonyPrometheusExporterBundle\Configuration;
 
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
-class ConfigurationProvider implements ConfigurationProviderInterface
+final readonly class ConfigurationProvider implements
+    ConfigurationProviderInterface
 {
     private const BUNDLE_NODE_KEY = 'tasko_products_symfony_prometheus_exporter';
 
@@ -105,14 +107,14 @@ class ConfigurationProvider implements ConfigurationProviderInterface
         $haystack = array_keys($currentNode);
 
         /**
-         * @var int|bool $result
+         * @var int|string|false $result
          */
-        $result = array_search($needle, $haystack);
-
-        if ($result === false) {
+        $result = array_search($needle, $haystack, true);
+        if (!is_int($result)) {
             return null;
         }
 
+        /** @var array|bool|string|int|float|\UnitEnum|null */
         return $currentNode[$haystack[$result]];
     }
 }

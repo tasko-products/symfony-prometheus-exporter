@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link         http://www.tasko-products.de/ tasko Products GmbH
  * @copyright    (c) tasko Products GmbH
@@ -22,38 +23,53 @@ use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
-class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterface
+final class MessagesInTransportMetricEventSubscriber implements
+    EventSubscriberInterface
 {
     use EnvelopeMethodesTrait;
 
-    private RegistryInterface $registry;
     private bool $enabled = false;
     private string $namespace = '';
     private string $metricName = '';
     private string $helpText = '';
-    /** @var string[] */
-    private array $labels = [];
+
+    /**
+     * @var array{
+     *     message_path: string,
+     *     message_class: string,
+     *     bus: string,
+     * }
+     */
+    private array $labels;
 
     public function __construct(
-        RegistryInterface $registry,
+        private readonly RegistryInterface $registry,
         ConfigurationProviderInterface $config,
     ) {
-        $this->registry = $registry;
+        $configPrefix = 'event_subscribers.messages_in_transport';
 
-        $configPrefix = 'event_subscribers.messages_in_transport.';
-
-        $this->enabled = $config->maybeGetBool($configPrefix . 'enabled') ?? false;
-        $this->namespace = $config->maybeGetString($configPrefix . 'namespace')
+        $this->enabled = $config->maybeGetBool("{$configPrefix}.enabled")
+            ?? false;
+        $this->namespace = $config->maybeGetString("{$configPrefix}.namespace")
             ?? 'messenger_events';
-        $this->metricName = $config->maybeGetString($configPrefix . 'metric_name')
+        $this->metricName = $config->maybeGetString("{$configPrefix}.metric_name")
             ?? 'messages_in_transport';
-        $this->helpText = $config->maybeGetString($configPrefix . 'help_text')
+        $this->helpText = $config->maybeGetString("{$configPrefix}.help_text")
             ?? 'Messages In Transport';
-        $this->labels = $config->maybeGetArray($configPrefix . 'labels') ?? [
-            'message_path' => 'message_path',
-            'message_class' => 'message_class',
-            'bus' => 'bus',
-        ];
+
+        /**
+         * @var array{
+         *     message_path?: string,
+         *     message_class?: string,
+         *     bus?: string,
+         * }
+         */
+        $labels = $config->maybeGetArray("{$configPrefix}.labels") ?? [];
+        $labels['message_path'] ??= 'message_path';
+        $labels['message_class'] ??= 'message_class';
+        $labels['bus'] ??= 'bus';
+
+        $this->labels = $labels;
     }
 
     /**
@@ -67,22 +83,28 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
         ];
     }
 
-    public function onSendMessageToTransports(SendMessageToTransportsEvent $event): void
-    {
+    public function onSendMessageToTransports(
+        SendMessageToTransportsEvent $event,
+    ): void {
         if (!$this->enabled) {
             return;
         }
 
-        $this->messagesInTransportGauge()->inc($this->messagesInTransportLabelValues($event));
+        $this->messagesInTransportGauge()->inc(
+            $this->messagesInTransportLabelValues($event),
+        );
     }
 
-    public function onWorkerMessageReceived(WorkerMessageReceivedEvent $event): void
-    {
+    public function onWorkerMessageReceived(
+        WorkerMessageReceivedEvent $event,
+    ): void {
         if (!$this->enabled || $this->isRedelivered($event->getEnvelope())) {
             return;
         }
 
-        $this->messagesInTransportGauge()->dec($this->messagesInTransportLabelValues($event));
+        $this->messagesInTransportGauge()->dec(
+            $this->messagesInTransportLabelValues($event),
+        );
     }
 
     private function messagesInTransportGauge(): Gauge
@@ -96,7 +118,7 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
     private function messagesInTransportLabels(): array
     {
@@ -108,10 +130,11 @@ class MessagesInTransportMetricEventSubscriber implements EventSubscriberInterfa
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
-    private function messagesInTransportLabelValues(SendMessageToTransportsEvent|WorkerMessageReceivedEvent $event): array
-    {
+    private function messagesInTransportLabelValues(
+        SendMessageToTransportsEvent|WorkerMessageReceivedEvent $event,
+    ): array {
         $envelope = $event->getEnvelope();
 
         return [

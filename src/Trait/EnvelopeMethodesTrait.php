@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link         http://www.tasko-products.de/ tasko Products GmbH
  * @copyright    (c) tasko Products GmbH
@@ -24,7 +25,6 @@ trait EnvelopeMethodesTrait
     {
         $busName = 'default_messenger';
         $stamp = $envelope->last(BusNameStamp::class);
-
         if ($stamp instanceof BusNameStamp === true) {
             $busName = \str_replace('.', '_', $stamp->getBusName());
         }
@@ -39,7 +39,10 @@ trait EnvelopeMethodesTrait
 
     private function messageClassLabel(Envelope $envelope): string
     {
-        return \substr((string)\strrchr($this->messageClassPathLabel($envelope), '\\'), 1);
+        return \substr(
+            (string)\strrchr($this->messageClassPathLabel($envelope), '\\'),
+            offset: 1,
+        );
     }
 
     private function isRedelivered(Envelope $envelope): bool

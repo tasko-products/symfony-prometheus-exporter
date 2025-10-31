@@ -3,16 +3,16 @@
     "description": "Generic metrics exporter for Symfony including messenger event metrics via middleware, request metrics, logging metrics and custom metrics via the Collector composition",
     "type": "symfony-bundle",
     "require": {
-        "php": ">=8.1",
-        "symfony/framework-bundle": "^5.4 || ^6.0 || ^7.0",
-        "promphp/prometheus_client_php": "^2.12.0",
-        "symfony/messenger": "^5.4 || ^6.0 || ^7.0",
-        "tasko-products/php-codestyle": "^1.0.0"
+        "php": "~8.3",
+        "symfony/framework-bundle": "^6.4|^7.0",
+        "promphp/prometheus_client_php": "^2.14",
+        "symfony/messenger": "^6.4|^7.0",
+        "tasko-products/php-codestyle": "^2.0"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.0.0",
-        "phpstan/phpstan": "^1.4.2",
-        "phpunit/phpunit": "^9.5"
+        "friendsofphp/php-cs-fixer": "^3.89",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^12.4"
     },
     "autoload": {
         "psr-4": {

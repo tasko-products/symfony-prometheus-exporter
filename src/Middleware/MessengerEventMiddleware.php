@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link         http://www.tasko-products.de/ tasko Products GmbH
  * @copyright    (c) tasko Products GmbH
@@ -21,46 +22,75 @@ use Symfony\Component\Messenger\Middleware\StackInterface;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
-class MessengerEventMiddleware implements MiddlewareInterface
+final class MessengerEventMiddleware implements MiddlewareInterface
 {
     use EnvelopeMethodesTrait;
 
-    private RegistryInterface $registry;
     private string $namespace = '';
     private string $metricName = '';
     private string $helpText = '';
-    /** @var string[] */
-    private array $labels = [];
     private string $errorHelpText = '';
-    /** @var string[] */
-    private array $errorLabels = [];
+
+    /**
+     * @var array{
+     *     bus: string,
+     *     message: string,
+     *     label: string,
+     * }
+     */
+    private array $labels;
+
+    /**
+     * @var array{
+     *     bus: string,
+     *     message: string,
+     *     label: string,
+     * }
+     */
+    private array $errorLabels;
 
     public function __construct(
-        RegistryInterface $registry,
+        private readonly RegistryInterface $registry,
         ConfigurationProviderInterface $config,
     ) {
-        $this->registry = $registry;
+        $configPrefix = 'middlewares.event_middleware';
 
-        $configPrefix = 'middlewares.event_middleware.';
-
-        $this->namespace = $config->maybeGetString($configPrefix . 'namespace')
+        $this->namespace = $config->maybeGetString("{$configPrefix}.namespace")
             ?? 'middleware';
-        $this->metricName = $config->maybeGetString($configPrefix . 'metric_name')
+        $this->metricName = $config->maybeGetString("{$configPrefix}.metric_name")
             ?? 'message';
-        $this->helpText = $config->maybeGetString($configPrefix . 'help_text')
+        $this->helpText = $config->maybeGetString("{$configPrefix}.help_text")
             ?? 'Executed Messages';
-        $this->labels = $config->maybeGetArray($configPrefix . 'labels') ?? [
-            'bus' => 'bus',
-            'message' => 'message',
-            'label' => 'label',
-        ];
-        $this->errorHelpText = $config->maybeGetString($configPrefix . 'error_help_text')
+        $this->errorHelpText = $config->maybeGetString("{$configPrefix}.error_help_text")
             ?? 'Failed Messages';
-        $this->errorLabels = $config->maybeGetArray($configPrefix . 'error_labels') ?? [
-            'bus' => 'bus',
-            'message' => 'message',
-            'label' => 'label',
-        ];
+
+        /**
+         * @var array{
+         *     bus?: string,
+         *     message?: string,
+         *     label?: string,
+         * }
+         */
+        $labels = $config->maybeGetArray("{$configPrefix}.labels") ?? [];
+        $labels['bus'] ??= 'bus';
+        $labels['message'] ??= 'message';
+        $labels['label'] ??= 'label';
+
+        $this->labels = $labels;
+
+        /**
+         * @var array{
+         *     bus?: string,
+         *     message?: string,
+         *     label?: string,
+         * }
+         */
+        $errorLabels = $config->maybeGetArray("{$configPrefix}.error_labels") ?? [];
+        $errorLabels['bus'] ??= 'bus';
+        $errorLabels['message'] ??= 'message';
+        $errorLabels['label'] ??= 'label';
+
+        $this->errorLabels = $errorLabels;
     }
 
     /**
@@ -103,7 +133,7 @@ class MessengerEventMiddleware implements MiddlewareInterface
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
     private function eventMiddlewareLabels(): array
     {
@@ -115,7 +145,7 @@ class MessengerEventMiddleware implements MiddlewareInterface
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
     private function eventMiddlewareErrorLabels(): array
     {

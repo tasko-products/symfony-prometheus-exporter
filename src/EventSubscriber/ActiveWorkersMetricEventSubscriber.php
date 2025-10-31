@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link         http://www.tasko-products.de/ tasko Products GmbH
  * @copyright    (c) tasko Products GmbH
@@ -22,34 +23,36 @@ use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
 use Symfony\Component\Messenger\WorkerMetadata;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
 
-class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
+final class ActiveWorkersMetricEventSubscriber implements
+    EventSubscriberInterface
 {
-    private RegistryInterface $registry;
     private bool $enabled = false;
     private string $namespace = '';
     private string $metricName = '';
     private string $helpText = '';
-    /** @var string[] */
-    private array $labels = [];
+
+    /** @var array{queue_names: string, transport_names: string} */
+    private array $labels;
 
     public function __construct(
-        RegistryInterface $registry,
+        private readonly RegistryInterface $registry,
         ConfigurationProviderInterface $config,
     ) {
-        $this->registry = $registry;
+        $configPrefix = 'event_subscribers.active_workers';
 
-        $configPrefix = 'event_subscribers.active_workers.';
-
-        $this->enabled = $config->maybeGetBool($configPrefix . 'enabled') ?? false;
-        $this->namespace = $config->maybeGetString($configPrefix . 'namespace')
+        $this->enabled = $config->maybeGetBool("{$configPrefix}.enabled") ?? false;
+        $this->namespace = $config->maybeGetString("{$configPrefix}.namespace")
             ?? 'messenger_events';
-        $this->metricName = $config->maybeGetString($configPrefix . 'metric_name')
+        $this->metricName = $config->maybeGetString("{$configPrefix}.metric_name")
             ?? 'active_workers';
-        $this->helpText = $config->maybeGetString($configPrefix . 'help_text') ?? 'Active Workers';
-        $this->labels = $config->maybeGetArray($configPrefix . 'labels') ?? [
-            'queue_names' => 'queue_names',
-            'transport_names' => 'transport_names',
-        ];
+        $this->helpText = $config->maybeGetString("{$configPrefix}.help_text") ?? 'Active Workers';
+
+        /** @var array{queue_names?: string, transport_names?: string} */
+        $labels = $config->maybeGetArray("{$configPrefix}.labels") ?? [];
+        $labels['queue_names'] ??= 'queue_names';
+        $labels['transport_names'] ??= 'transport_names';
+
+        $this->labels = $labels;
     }
 
     /**
@@ -100,7 +103,7 @@ class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
     private function activeWorkersLabels(): array
     {
@@ -111,7 +114,7 @@ class ActiveWorkersMetricEventSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
     private function activeWorkersLabelValues(WorkerMetadata $data): array
     {

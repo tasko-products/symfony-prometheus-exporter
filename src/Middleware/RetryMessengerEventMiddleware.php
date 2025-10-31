@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link         http://www.tasko-products.de/ tasko Products GmbH
  * @copyright    (c) tasko Products GmbH
@@ -22,39 +23,52 @@ use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Configuration\ConfigurationProviderInterface;
 use TaskoProducts\SymfonyPrometheusExporterBundle\Trait\EnvelopeMethodesTrait;
 
-class RetryMessengerEventMiddleware implements MiddlewareInterface
+final class RetryMessengerEventMiddleware implements MiddlewareInterface
 {
     use EnvelopeMethodesTrait;
 
-    private RegistryInterface $registry;
     private string $namespace = '';
     private string $metricName = '';
     private string $helpText = '';
+
     /**
-     * @var string[]
+     * @var array{
+     *     bus: string,
+     *     message: string,
+     *     label: string,
+     *     retry: string,
+     * }
      */
-    private array $labels = [];
+    private array $labels;
 
     public function __construct(
-        RegistryInterface $registry,
+        private readonly RegistryInterface $registry,
         ConfigurationProviderInterface $config,
     ) {
-        $this->registry = $registry;
+        $configPrefix = 'middlewares.retry_event_middleware';
 
-        $configPrefix = 'middlewares.retry_event_middleware.';
-
-        $this->namespace = $config->maybeGetString($configPrefix . 'namespace')
+        $this->namespace = $config->maybeGetString("{$configPrefix}.namespace")
             ?? 'middleware';
-        $this->metricName = $config->maybeGetString($configPrefix . 'metric_name')
+        $this->metricName = $config->maybeGetString("{$configPrefix}.metric_name")
             ?? 'retry_message';
-        $this->helpText = $config->maybeGetString($configPrefix . 'help_text')
+        $this->helpText = $config->maybeGetString("{$configPrefix}.help_text")
             ?? 'Retried Messages';
-        $this->labels = $config->maybeGetArray($configPrefix . 'labels') ?? [
-            'bus' => 'bus',
-            'message' => 'message',
-            'label' => 'label',
-            'retry' => 'retry',
-        ];
+
+        /**
+         * @var array{
+         *     bus?: string,
+         *     message?: string,
+         *     label?: string,
+         *     retry?: string,
+         * }
+         */
+        $labels = $config->maybeGetArray("{$configPrefix}.labels") ?? [];
+        $labels['bus'] ??= 'bus';
+        $labels['message'] ??= 'message';
+        $labels['label'] ??= 'label';
+        $labels['retry'] ??= 'retry';
+
+        $this->labels = $labels;
     }
 
     /**
@@ -84,7 +98,7 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
     private function retryEventMiddlewareLabels(): array
     {
@@ -96,10 +110,10 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
         ];
     }
 
-    private function lastRedeliveryStamp(Envelope $envelope): ?RedeliveryStamp
-    {
+    private function lastRedeliveryStamp(
+        Envelope $envelope,
+    ): RedeliveryStamp|null {
         $stamp = $envelope->last(RedeliveryStamp::class);
-
         if (!$stamp instanceof RedeliveryStamp) {
             return null;
         }
@@ -107,7 +121,7 @@ class RetryMessengerEventMiddleware implements MiddlewareInterface
         return $stamp;
     }
 
-    private function messageRetryLabel(?RedeliveryStamp $stamp): string
+    private function messageRetryLabel(RedeliveryStamp|null $stamp): string
     {
         return (string) ($stamp?->getRetryCount() ?: 0);
     }

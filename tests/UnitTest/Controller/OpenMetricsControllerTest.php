@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link         http://www.tasko-products.de/ tasko Products GmbH
  * @copyright    (c) tasko Products GmbH
@@ -49,7 +50,6 @@ class OpenMetricsControllerTest extends TestCase
          */
         $content = $metricsResponse->getContent();
 
-        $this->assertIsString($content);
         $this->assertEquals(
             $givenMetric,
             $content,
